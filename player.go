@@ -1,6 +1,8 @@
 package main
 
 import (
+	"github.com/artheus/go-minecraft/core"
+	. "github.com/artheus/go-minecraft/math32"
 	"log"
 
 	"github.com/faiface/glhf"
@@ -8,6 +10,7 @@ import (
 	"github.com/go-gl/glfw/v3.2/glfw"
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/icexin/gocraft-server/proto"
+
 )
 
 type PlayerState struct {
@@ -31,18 +34,18 @@ type Player struct {
 func (p *Player) computeMat() mgl32.Mat4 {
 	t1 := p.s2.time - p.s1.time
 	t2 := glfw.GetTime() - p.s2.time
-	t := min(float32(t2/t1), 1)
+	t := Min(float32(t2/t1), 1)
 
-	x := mix(p.s1.X, p.s2.X, t)
-	y := mix(p.s1.Y, p.s2.Y, t)
-	z := mix(p.s1.Z, p.s2.Z, t)
-	rx := mix(p.s1.Rx, p.s2.Rx, t)
-	ry := mix(p.s1.Ry, p.s2.Ry, t)
+	x := Mix(p.s1.X, p.s2.X, t)
+	y := Mix(p.s1.Y, p.s2.Y, t)
+	z := Mix(p.s1.Z, p.s2.Z, t)
+	rx := Mix(p.s1.Rx, p.s2.Rx, t)
+	ry := Mix(p.s1.Ry, p.s2.Ry, t)
 
 	front := mgl32.Vec3{
-		cos(radian(ry)) * cos(radian(rx)),
-		sin(radian(ry)),
-		cos(radian(ry)) * sin(radian(rx)),
+		Cos(Radian(ry)) * Cos(Radian(rx)),
+		Sin(Radian(ry)),
+		Cos(Radian(ry)) * Sin(Radian(rx)),
 	}.Normalize()
 	right := front.Cross(mgl32.Vec3{0, 1, 0})
 	up := right.Cross(front).Normalize()
@@ -120,10 +123,26 @@ func (r *PlayerRender) UpdateOrAdd(id int32, s proto.PlayerState) {
 	p, ok := r.players[id]
 	if !ok {
 		log.Printf("add new player %d", id)
-		cubeData := makeCubeData([]float32{}, [...]bool{true, true, true, true, true, true}, Vec3{0, 0, 0}, tex.Texture(64))
+		blockData := core.BlockData(
+			[]float32{},
+			core.ShowSides(
+				true,
+				true,
+				true,
+				true,
+				true,
+				true,
+			),
+			Vec3{
+				0,
+				0,
+				0,
+			},
+			tex.Texture(64),
+		)
 		var mesh *Mesh
 		mainthread.Call(func() {
-			mesh = NewMesh(r.shader, cubeData)
+			mesh = NewMesh(r.shader, blockData)
 		})
 		p = &Player{
 			shader: r.shader,

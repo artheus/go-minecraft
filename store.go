@@ -1,6 +1,9 @@
 package main
 
 import (
+	. "github.com/artheus/go-minecraft/math32"
+	"github.com/artheus/go-minecraft/types"
+
 	"bytes"
 	"encoding/binary"
 	"errors"
@@ -73,7 +76,7 @@ func (s *Store) UpdateBlock(id Vec3, w int) error {
 	return s.db.Update(func(tx *bolt.Tx) error {
 		log.Printf("put %v -> %d", id, w)
 		bkt := tx.Bucket(blockBucket)
-		cid := id.Chunkid()
+		cid := id.ChunkID()
 		key := encodeBlockDbKey(cid, id)
 		value := encodeBlockDbValue(w)
 		return bkt.Put(key, value)
@@ -106,7 +109,7 @@ func (s *Store) GetPlayerState() PlayerState {
 	return state
 }
 
-func (s *Store) RangeBlocks(id Vec3, f func(bid Vec3, w int)) error {
+func (s *Store) RangeBlocks(id types.ChunkID, f func(bid Vec3, w int)) error {
 	return s.db.View(func(tx *bolt.Tx) error {
 		bkt := tx.Bucket(blockBucket)
 		startkey := encodeBlockDbKey(id, Vec3{0, 0, 0})
@@ -123,19 +126,19 @@ func (s *Store) RangeBlocks(id Vec3, f func(bid Vec3, w int)) error {
 	})
 }
 
-func (s *Store) UpdateChunkVersion(id Vec3, version string) error {
+func (s *Store) UpdateChunkVersion(id types.ChunkID, version string) error {
 	return s.db.Update(func(tx *bolt.Tx) error {
 		bkt := tx.Bucket(chunkBucket)
-		key := encodeVec3(id)
+		key := encodeChunkID(id)
 		return bkt.Put(key, []byte(version))
 	})
 }
 
-func (s *Store) GetChunkVersion(id Vec3) string {
+func (s *Store) GetChunkVersion(id types.ChunkID) string {
 	var version string
 	s.db.View(func(tx *bolt.Tx) error {
 		bkt := tx.Bucket(chunkBucket)
-		key := encodeVec3(id)
+		key := encodeChunkID(id)
 		v := bkt.Get(key)
 		if v != nil {
 			version = string(v)
@@ -152,18 +155,24 @@ func (s *Store) Close() {
 
 func encodeVec3(v Vec3) []byte {
 	buf := new(bytes.Buffer)
+	binary.Write(buf, binary.LittleEndian, [...]float32{v.X, v.Y, v.Z})
+	return buf.Bytes()
+}
+
+func encodeChunkID(v types.ChunkID) []byte {
+	buf := new(bytes.Buffer)
 	binary.Write(buf, binary.LittleEndian, [...]int32{int32(v.X), int32(v.Y), int32(v.Z)})
 	return buf.Bytes()
 }
 
-func encodeBlockDbKey(cid, bid Vec3) []byte {
+func encodeBlockDbKey(cid types.ChunkID, bid Vec3) []byte {
 	buf := new(bytes.Buffer)
 	binary.Write(buf, binary.LittleEndian, [...]int32{int32(cid.X), int32(cid.Z)})
 	binary.Write(buf, binary.LittleEndian, [...]int32{int32(bid.X), int32(bid.Y), int32(bid.Z)})
 	return buf.Bytes()
 }
 
-func decodeBlockDbKey(b []byte) (Vec3, Vec3) {
+func decodeBlockDbKey(b []byte) (types.ChunkID, Vec3) {
 	if len(b) != 4*5 {
 		log.Panicf("bad db key length:%d", len(b))
 	}
@@ -171,9 +180,9 @@ func decodeBlockDbKey(b []byte) (Vec3, Vec3) {
 	var arr [5]int32
 	binary.Read(buf, binary.LittleEndian, &arr)
 
-	cid := Vec3{int(arr[0]), 0, int(arr[1])}
-	bid := Vec3{int(arr[2]), int(arr[3]), int(arr[4])}
-	if bid.Chunkid() != cid {
+	cid := types.ChunkID{X: int(arr[0]), Z: int(arr[1])}
+	bid := Vec3{X: float32(arr[2]), Y: float32(arr[3]), Z: float32(arr[4])}
+	if bid.ChunkID() != cid {
 		log.Panicf("bad db key: cid:%v, bid:%v", cid, bid)
 	}
 	return cid, bid

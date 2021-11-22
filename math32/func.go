@@ -1,55 +1,59 @@
-package main
+package math32
 
 import (
 	"math"
 
 	"github.com/go-gl/mathgl/mgl32"
-	opensimplex "github.com/ojrac/opensimplex-go"
+	"github.com/ojrac/opensimplex-go"
 )
 
 var (
 	sim = opensimplex.New(0)
 )
 
-func abs(x float32) float32 {
+func Abs(x float32) float32 {
 	return float32(math.Abs(float64(x)))
 }
 
-func round(x float32) float32 {
+func Round(x float32) float32 {
 	return float32(math.Round(float64(x)))
 }
 
-func sin(x float32) float32 {
+func Floor(x float32) float32 {
+	return float32(math.Floor(float64(x)))
+}
+
+func Sin(x float32) float32 {
 	return float32(math.Sin(float64(x)))
 }
 
-func cos(x float32) float32 {
+func Cos(x float32) float32 {
 	return float32(math.Cos(float64(x)))
 }
 
-func radian(angle float32) float32 {
+func Radian(angle float32) float32 {
 	return mgl32.DegToRad(angle)
 }
 
-func max(a, b float32) float32 {
+func Max(a, b float32) float32 {
 	if a > b {
 		return a
 	}
 	return b
 }
 
-func min(a, b float32) float32 {
+func Min(a, b float32) float32 {
 	if a < b {
 		return a
 	}
 	return b
 }
 
-func mix(a, b, factor float32) float32 {
+func Mix(a, b, factor float32) float32 {
 	return a*(1-factor) + factor*b
 }
 
-func noise2(x, y float32, octaves int, persistence, lacunarity float32) float32 {
+func Noise2(x, y float32, octaves int, persistence, lacunarity float32) float32 {
 	var (
 		freq  float32 = 1
 		amp   float32 = 1
@@ -65,7 +69,7 @@ func noise2(x, y float32, octaves int, persistence, lacunarity float32) float32 
 	return (1 + float32(total)/max) / 2
 }
 
-func noise3(x, y, z float32, octaves int, persistence, lacunarity float32) float32 {
+func Noise3(x, y, z float32, octaves int, persistence, lacunarity float32) float32 {
 	var (
 		freq  float32 = 1
 		amp   float32 = 1

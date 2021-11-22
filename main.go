@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	. "github.com/artheus/go-minecraft/math32"
 	"log"
 	"time"
 
@@ -67,6 +68,7 @@ func initGL(w, h int) *glfw.Window {
 	glfw.SwapInterval(1) // enable vsync
 	gl.Enable(gl.DEPTH_TEST)
 	gl.Enable(gl.CULL_FACE)
+
 	return win
 }
 
@@ -118,11 +120,11 @@ func (g *Game) setExclusiveMouse(exclusive bool) {
 }
 
 func (g *Game) dirtyBlock(id Vec3) {
-	cid := id.Chunkid()
+	cid := id.ChunkID()
 	g.blockRender.DirtyChunk(cid)
 	neighbors := []Vec3{id.Left(), id.Right(), id.Front(), id.Back()}
 	for _, neighbor := range neighbors {
-		chunkid := neighbor.Chunkid()
+		chunkid := neighbor.ChunkID()
 		if chunkid != cid {
 			g.blockRender.DirtyChunk(chunkid)
 		}
@@ -245,7 +247,8 @@ func (g *Game) ShouldClose() bool {
 func (g *Game) renderStat() {
 	g.fps.Update()
 	p := g.camera.Pos()
-	cid := NearBlock(p).Chunkid()
+	nb := NearBlock(p)
+	cid := nb.ChunkID()
 	stat := g.blockRender.Stat()
 	title := fmt.Sprintf("[%.2f %.2f %.2f] %v [%d/%d %d] %d", p.X(), p.Y(), p.Z(),
 		cid, stat.RendingChunks, stat.CacheChunks, stat.Faces, g.fps.Fps())

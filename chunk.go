@@ -1,73 +1,41 @@
 package main
 
 import (
+	. "github.com/artheus/go-minecraft/math32"
+	"github.com/artheus/go-minecraft/types"
+
 	"log"
-	"math"
 	"sync"
 
 	"github.com/go-gl/mathgl/mgl32"
 )
 
-const (
-	ChunkWidth = 32
-)
-
-type Vec3 struct {
-	X, Y, Z int
-}
-
-func (v Vec3) Left() Vec3 {
-	return Vec3{v.X - 1, v.Y, v.Z}
-}
-func (v Vec3) Right() Vec3 {
-	return Vec3{v.X + 1, v.Y, v.Z}
-}
-func (v Vec3) Up() Vec3 {
-	return Vec3{v.X, v.Y + 1, v.Z}
-}
-func (v Vec3) Down() Vec3 {
-	return Vec3{v.X, v.Y - 1, v.Z}
-}
-func (v Vec3) Front() Vec3 {
-	return Vec3{v.X, v.Y, v.Z + 1}
-}
-func (v Vec3) Back() Vec3 {
-	return Vec3{v.X, v.Y, v.Z - 1}
-}
-func (v Vec3) Chunkid() Vec3 {
-	return Vec3{
-		int(math.Floor(float64(v.X) / ChunkWidth)),
-		0,
-		int(math.Floor(float64(v.Z) / ChunkWidth)),
-	}
-}
-
 func NearBlock(pos mgl32.Vec3) Vec3 {
 	return Vec3{
-		int(round(pos.X())),
-		int(round(pos.Y())),
-		int(round(pos.Z())),
+		X: Round(pos.X()),
+		Y: Round(pos.Y()),
+		Z: Round(pos.Z()),
 	}
 }
 
 type Chunk struct {
-	id     Vec3
+	id     types.ChunkID
 	blocks sync.Map // map[Vec3]int
 }
 
-func NewChunk(id Vec3) *Chunk {
+func NewChunk(id types.ChunkID) *Chunk {
 	c := &Chunk{
 		id: id,
 	}
 	return c
 }
 
-func (c *Chunk) Id() Vec3 {
+func (c *Chunk) ID() types.ChunkID {
 	return c.id
 }
 
 func (c *Chunk) Block(id Vec3) int {
-	if id.Chunkid() != c.id {
+	if id.ChunkID() != c.id {
 		log.Panicf("id %v chunk %v", id, c.id)
 	}
 	w, ok := c.blocks.Load(id)
@@ -78,14 +46,14 @@ func (c *Chunk) Block(id Vec3) int {
 }
 
 func (c *Chunk) add(id Vec3, w int) {
-	if id.Chunkid() != c.id {
+	if id.ChunkID() != c.id {
 		log.Panicf("id %v chunk %v", id, c.id)
 	}
 	c.blocks.Store(id, w)
 }
 
 func (c *Chunk) del(id Vec3) {
-	if id.Chunkid() != c.id {
+	if id.ChunkID() != c.id {
 		log.Panicf("id %v chunk %v", id, c.id)
 	}
 	c.blocks.Delete(id)

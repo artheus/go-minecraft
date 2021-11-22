@@ -1,8 +1,11 @@
 package main
 
 import (
+	"github.com/artheus/go-minecraft/types"
 	"log"
 	"sync"
+
+	. "github.com/artheus/go-minecraft/math32"
 
 	"github.com/go-gl/mathgl/mgl32"
 	lru "github.com/hashicorp/golang-lru"
@@ -21,7 +24,7 @@ func NewWorld() *World {
 	}
 }
 
-func (w *World) loadChunk(id Vec3) (*Chunk, bool) {
+func (w *World) loadChunk(id types.ChunkID) (*Chunk, bool) {
 	chunk, ok := w.chunks.Get(id)
 	if !ok {
 		return nil, false
@@ -29,16 +32,20 @@ func (w *World) loadChunk(id Vec3) (*Chunk, bool) {
 	return chunk.(*Chunk), true
 }
 
-func (w *World) storeChunk(id Vec3, chunk *Chunk) {
+func (w *World) storeChunk(id types.ChunkID, chunk *Chunk) {
 	w.chunks.Add(id, chunk)
 }
 
 func (w *World) Collide(pos mgl32.Vec3) (mgl32.Vec3, bool) {
 	x, y, z := pos.X(), pos.Y(), pos.Z()
-	nx, ny, nz := round(pos.X()), round(pos.Y()), round(pos.Z())
+	nx, ny, nz := Round(pos.X()), Round(pos.Y()), Round(pos.Z())
 	const pad = 0.25
 
-	head := Vec3{int(nx), int(ny), int(nz)}
+	head := Vec3{
+		X: nx,
+		Y: ny,
+		Z: nz,
+	}
 	foot := head.Down()
 
 	stop := false
@@ -96,7 +103,7 @@ func (w *World) Block(id Vec3) int {
 }
 
 func (w *World) BlockChunk(block Vec3) *Chunk {
-	cid := block.Chunkid()
+	cid := block.ChunkID()
 	chunk, ok := w.loadChunk(cid)
 	if !ok {
 		return nil
@@ -154,7 +161,7 @@ func (w *World) HasBlock(id Vec3) bool {
 	return tp != -1 && tp != 0
 }
 
-func (w *World) Chunk(id Vec3) *Chunk {
+func (w *World) Chunk(id types.ChunkID) *Chunk {
 	p, ok := w.loadChunk(id)
 	if ok {
 		return p
@@ -187,14 +194,13 @@ func (w *World) Chunk(id Vec3) *Chunk {
 	return chunk
 }
 
-func (w *World) Chunks(ids []Vec3) []*Chunk {
+func (w *World) Chunks(ids []types.ChunkID) []*Chunk {
 	ch := make(chan *Chunk)
 	var chunks []*Chunk
 	for _, id := range ids {
-		id := id
-		go func() {
+		go func(id types.ChunkID) {
 			ch <- w.Chunk(id)
-		}()
+		}(id)
 	}
 	for range ids {
 		chunk := <-ch
@@ -205,7 +211,7 @@ func (w *World) Chunks(ids []Vec3) []*Chunk {
 	return chunks
 }
 
-func makeChunkMap(cid Vec3) map[Vec3]int {
+func makeChunkMap(cid types.ChunkID) map[Vec3]int {
 	const (
 		grassBlock = 1
 		sandBlock  = 2
@@ -218,8 +224,8 @@ func makeChunkMap(cid Vec3) map[Vec3]int {
 	for dx := 0; dx < ChunkWidth; dx++ {
 		for dz := 0; dz < ChunkWidth; dz++ {
 			x, z := p*ChunkWidth+dx, q*ChunkWidth+dz
-			f := noise2(float32(x)*0.01, float32(z)*0.01, 4, 0.5, 2)
-			g := noise2(float32(-x)*0.01, float32(-z)*0.01, 2, 0.9, 2)
+			f := Noise2(float32(x)*0.01, float32(z)*0.01, 4, 0.5, 2)
+			g := Noise2(float32(-x)*0.01, float32(-z)*0.01, 2, 0.9, 2)
 			mh := int(g*32 + 16)
 			h := int(f * float32(mh))
 			w := grassBlock
@@ -229,17 +235,17 @@ func makeChunkMap(cid Vec3) map[Vec3]int {
 			}
 			// grass and sand
 			for y := 0; y < h; y++ {
-				m[Vec3{x, y, z}] = w
+				m[Vec3{X: float32(x), Y: float32(y), Z: float32(z)}] = w
 			}
 
 			// flowers
 			if w == grassBlock {
-				if noise2(-float32(x)*0.1, float32(z)*0.1, 4, 0.8, 2) > 0.6 {
-					m[Vec3{x, h, z}] = grass
+				if Noise2(-float32(x)*0.1, float32(z)*0.1, 4, 0.8, 2) > 0.6 {
+					m[Vec3{X: float32(x), Y: float32(h), Z: float32(z)}] = grass
 				}
-				if noise2(float32(x)*0.05, float32(-z)*0.05, 4, 0.8, 2) > 0.7 {
-					w := 18 + int(noise2(float32(x)*0.1, float32(z)*0.1, 4, 0.8, 2)*7)
-					m[Vec3{x, h, z}] = w
+				if Noise2(float32(x)*0.05, float32(-z)*0.05, 4, 0.8, 2) > 0.7 {
+					w := 18 + int(Noise2(float32(x)*0.1, float32(z)*0.1, 4, 0.8, 2)*7)
+					m[Vec3{X: float32(x), Y: float32(h), Z: float32(z)}] = w
 				}
 			}
 
@@ -250,27 +256,27 @@ func makeChunkMap(cid Vec3) map[Vec3]int {
 					dx+4 > ChunkWidth || dz+4 > ChunkWidth {
 					ok = false
 				}
-				if ok && noise2(float32(x), float32(z), 6, 0.5, 2) > 0.79 {
+				if ok && Noise2(float32(x), float32(z), 6, 0.5, 2) > 0.79 {
 					for y := h + 3; y < h+8; y++ {
 						for ox := -3; ox <= 3; ox++ {
 							for oz := -3; oz <= 3; oz++ {
 								d := ox*ox + oz*oz + (y-h-4)*(y-h-4)
 								if d < 11 {
-									m[Vec3{x + ox, y, z + oz}] = leaves
+									m[Vec3{X: float32(x + ox), Y: float32(y), Z: float32(z + oz)}] = leaves
 								}
 							}
 						}
 					}
 					for y := h; y < h+7; y++ {
-						m[Vec3{x, y, z}] = wood
+						m[Vec3{X: float32(x), Y: float32(y), Z: float32(z)}] = wood
 					}
 				}
 			}
 
 			// cloud
 			for y := 64; y < 72; y++ {
-				if noise3(float32(x)*0.01, float32(y)*0.1, float32(z)*0.01, 8, 0.5, 2) > 0.69 {
-					m[Vec3{x, y, z}] = 16
+				if Noise3(float32(x)*0.01, float32(y)*0.1, float32(z)*0.01, 8, 0.5, 2) > 0.69 {
+					m[Vec3{X: float32(x), Y: float32(y), Z: float32(z)}] = 16
 				}
 			}
 		}

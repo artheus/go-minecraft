@@ -1,6 +1,9 @@
 package main
 
 import (
+	. "github.com/artheus/go-minecraft/math32"
+	"github.com/artheus/go-minecraft/types"
+
 	"flag"
 	"log"
 	"net"
@@ -36,13 +39,13 @@ func InitClient() error {
 	return nil
 }
 
-func ClientFetchChunk(id Vec3, f func(bid Vec3, w int)) {
+func ClientFetchChunk(id types.ChunkID, f func(bid Vec3, w int)) {
 	if client == nil {
 		return
 	}
 	req := proto.FetchChunkRequest{
-		P:       id.X,
-		Q:       id.Z,
+		P:       int(id.X),
+		Q:       int(id.Z),
 		Version: store.GetChunkVersion(id),
 	}
 	rep := new(proto.FetchChunkResponse)
@@ -54,7 +57,7 @@ func ClientFetchChunk(id Vec3, f func(bid Vec3, w int)) {
 		log.Panic(err)
 	}
 	for _, b := range rep.Blocks {
-		f(Vec3{b[0], b[1], b[2]}, b[3])
+		f(Vec3{X: float32(b[0]), Y: float32(b[1]), Z: float32(b[2])}, b[3])
 	}
 	if req.Version != rep.Version {
 		store.UpdateChunkVersion(id, rep.Version)
@@ -65,14 +68,14 @@ func ClientUpdateBlock(id Vec3, w int) {
 	if client == nil {
 		return
 	}
-	cid := id.Chunkid()
+	cid := id.ChunkID()
 	req := &proto.UpdateBlockRequest{
 		Id: client.ClientId,
 		P:  cid.X,
 		Q:  cid.Z,
-		X:  id.X,
-		Y:  id.Y,
-		Z:  id.Z,
+		X:  int(id.X),
+		Y:  int(id.Y),
+		Z:  int(id.Z),
 		W:  w,
 	}
 	rep := new(proto.UpdateBlockResponse)
@@ -83,7 +86,7 @@ func ClientUpdateBlock(id Vec3, w int) {
 	if err != nil {
 		log.Panic(err)
 	}
-	store.UpdateChunkVersion(id.Chunkid(), rep.Version)
+	store.UpdateChunkVersion(cid, rep.Version)
 }
 
 func ClientUpdatePlayerState(state PlayerState) {
@@ -114,9 +117,9 @@ type BlockService struct {
 
 func (s *BlockService) UpdateBlock(req *proto.UpdateBlockRequest, rep *proto.UpdateBlockResponse) error {
 	log.Printf("rpc::UpdateBlock:%v", *req)
-	bid := Vec3{req.X, req.Y, req.Z}
+	bid := Vec3{float32(req.X), float32(req.Y), float32(req.Z)}
 	game.world.UpdateBlock(bid, req.W)
-	game.blockRender.DirtyChunk(bid.Chunkid())
+	game.blockRender.DirtyChunk(bid.ChunkID())
 	return nil
 }
 

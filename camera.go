@@ -1,6 +1,9 @@
 package main
 
-import "github.com/go-gl/mathgl/mgl32"
+import (
+	. "github.com/artheus/go-minecraft/math32"
+	"github.com/go-gl/mathgl/mgl32"
+)
 
 type CameraMovement int
 
@@ -119,9 +122,9 @@ func (c *Camera) OnMoveChange(dir CameraMovement, delta float32) {
 }
 func (c *Camera) updateAngles() {
 	front := mgl32.Vec3{
-		cos(radian(c.rotatey)) * cos(radian(c.rotatex)),
-		sin(radian(c.rotatey)),
-		cos(radian(c.rotatey)) * sin(radian(c.rotatex)),
+		Cos(Radian(c.rotatey)) * Cos(Radian(c.rotatex)),
+		Sin(Radian(c.rotatey)),
+		Cos(Radian(c.rotatey)) * Sin(Radian(c.rotatex)),
 	}
 	c.front = front.Normalize()
 	c.right = c.front.Cross(mgl32.Vec3{0, 1, 0}).Normalize()
