@@ -5,7 +5,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4a42242f-bce0-4158-a969-c42855f509fa" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/camera.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/camera.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chunk.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/chunk.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/item.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/item.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/player.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/player.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/render.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/render.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rpc.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/rpc.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/shader.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/shader.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/store.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/store.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/world.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/world.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -59,9 +68,9 @@
       <recent name="$PROJECT_DIR$/math32" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/core" />
       <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/assets/json" />
-      <recent name="$PROJECT_DIR$/core" />
     </key>
   </component>
   <component name="RunManager" selected="Go Build.go build github.com/artheus/go-minecraft">

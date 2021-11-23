@@ -1,7 +1,6 @@
-package main
+package core
 
 import (
-	"github.com/artheus/go-minecraft/core"
 	. "github.com/artheus/go-minecraft/math32"
 	"log"
 
@@ -10,7 +9,6 @@ import (
 	"github.com/go-gl/glfw/v3.2/glfw"
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/icexin/gocraft-server/proto"
-
 )
 
 type PlayerState struct {
@@ -30,7 +28,7 @@ type Player struct {
 	mesh   *Mesh
 }
 
-// 线性插值计算玩家位置
+// Linear interpolation to calculate player position
 func (p *Player) computeMat() mgl32.Mat4 {
 	t1 := p.s2.time - p.s1.time
 	t2 := glfw.GetTime() - p.s2.time
@@ -123,9 +121,9 @@ func (r *PlayerRender) UpdateOrAdd(id int32, s proto.PlayerState) {
 	p, ok := r.players[id]
 	if !ok {
 		log.Printf("add new player %d", id)
-		blockData := core.BlockData(
+		blockData := BlockData(
 			[]float32{},
-			core.ShowSides(
+			ShowSides(
 				true,
 				true,
 				true,

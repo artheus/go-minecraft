@@ -1,7 +1,6 @@
-package main
+package core
 
 import (
-	"github.com/artheus/go-minecraft/core"
 	"log"
 )
 
@@ -9,7 +8,7 @@ var (
 	tex = NewItemHub()
 )
 
-func MakeFaceTexture(idx int) core.FaceTexture {
+func MakeFaceTexture(idx int) FaceTexture {
 	const textureColums = 16
 	var m = 1 / float32(textureColums)
 	dx, dy := float32(idx%textureColums)*m, float32(idx/textureColums)*m
@@ -26,17 +25,17 @@ func MakeFaceTexture(idx int) core.FaceTexture {
 }
 
 type ItemHub struct {
-	tex map[int]*core.BlockTexture
+	tex map[int]*BlockTexture
 }
 
 func NewItemHub() *ItemHub {
 	return &ItemHub{
-		tex: make(map[int]*core.BlockTexture),
+		tex: make(map[int]*BlockTexture),
 	}
 }
 
 func (h *ItemHub) AddTexture(w, l, r, u, d, f, b int) {
-	h.tex[w] = &core.BlockTexture{
+	h.tex[w] = &BlockTexture{
 		Left:  MakeFaceTexture(l),
 		Right: MakeFaceTexture(r),
 		Up:    MakeFaceTexture(u),
@@ -46,7 +45,7 @@ func (h *ItemHub) AddTexture(w, l, r, u, d, f, b int) {
 	}
 }
 
-func (h *ItemHub) Texture(w int) *core.BlockTexture {
+func (h *ItemHub) Texture(w int) *BlockTexture {
 	t, ok := h.tex[w]
 	if !ok {
 		log.Printf("%d not found", w)

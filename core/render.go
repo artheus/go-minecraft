@@ -1,8 +1,7 @@
-package main
+package core
 
 import (
 	"flag"
-	"github.com/artheus/go-minecraft/core"
 	. "github.com/artheus/go-minecraft/math32"
 	"github.com/artheus/go-minecraft/types"
 	"image"
@@ -106,7 +105,7 @@ func (r *BlockRender) makeChunkMesh(c *Chunk, onmainthread bool) *Mesh {
 		if w == 0 {
 			log.Panicf("unexpect 0 item types on %v", id)
 		}
-		show := core.ShowSides(
+		show := ShowSides(
 			IsTransparent(game.world.Block(id.Left())),
 			IsTransparent(game.world.Block(id.Right())),
 			IsTransparent(game.world.Block(id.Up())),
@@ -115,9 +114,9 @@ func (r *BlockRender) makeChunkMesh(c *Chunk, onmainthread bool) *Mesh {
 			IsTransparent(game.world.Block(id.Back())),
 		)
 		if IsPlant(game.world.Block(id)) {
-			facedata = core.PlantData(facedata, show, id, tex.Texture(w))
+			facedata = PlantData(facedata, show, id, tex.Texture(w))
 		} else {
-			facedata = core.BlockData(facedata, show, id, tex.Texture(w))
+			facedata = BlockData(facedata, show, id, tex.Texture(w))
 		}
 	})
 	n := len(facedata) / (r.shader.VertexFormat().Size() / 4)
@@ -139,12 +138,12 @@ func (r *BlockRender) UpdateItem(w int) {
 	vertices := r.facePool.Get().([]float32)
 	defer r.facePool.Put(vertices[:0])
 	texture := tex.Texture(w)
-	show := core.ShowSides(true, true, true, true, true, true)
+	show := ShowSides(true, true, true, true, true, true)
 	pos := Vec3{0, 0, 0}
 	if IsPlant(w) {
-		vertices = core.PlantData(vertices, show, pos, texture)
+		vertices = PlantData(vertices, show, pos, texture)
 	} else {
-		vertices = core.BlockData(vertices, show, pos, texture)
+		vertices = BlockData(vertices, show, pos, texture)
 	}
 	item := NewMesh(r.shader, vertices)
 	if r.item != nil {
@@ -276,7 +275,7 @@ func (r *BlockRender) updateMeshCache() {
 			}
 		}
 	}
-	// 单次并发构造的chunk个数
+	// Number of chunks constructed at a time
 	const batchBuildChunk = 4
 	r.sortChunks(added)
 	if len(added) > 4 {
@@ -619,7 +618,7 @@ func (r *LineRender) drawWireFrame(mat mgl32.Mat4) {
 	}
 
 	id := *block
-	show := core.ShowSides(
+	show := ShowSides(
 		IsTransparent(game.world.Block(id.Left())),
 		IsTransparent(game.world.Block(id.Right())),
 		IsTransparent(game.world.Block(id.Up())),
@@ -627,7 +626,7 @@ func (r *LineRender) drawWireFrame(mat mgl32.Mat4) {
 		IsTransparent(game.world.Block(id.Front())),
 		IsTransparent(game.world.Block(id.Back())),
 	)
-	vertices = core.WireFrameData(vertices, show)
+	vertices = WireFrameData(vertices, show)
 	if len(vertices) == 0 {
 		return
 	}

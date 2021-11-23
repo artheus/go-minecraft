@@ -1,4 +1,4 @@
-package main
+package core
 
 import (
 	. "github.com/artheus/go-minecraft/math32"
@@ -44,8 +44,8 @@ func ClientFetchChunk(id types.ChunkID, f func(bid Vec3, w int)) {
 		return
 	}
 	req := proto.FetchChunkRequest{
-		P:       int(id.X),
-		Q:       int(id.Z),
+		P:       id.X,
+		Q:       id.Z,
 		Version: store.GetChunkVersion(id),
 	}
 	rep := new(proto.FetchChunkResponse)
