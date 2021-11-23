@@ -1,0 +1,184 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "https://github.com/artheus/go-minecraft/blockstate.json",
+  "type": "object",
+  "title": "BlockState schema",
+  "description": "Root schema for minecraft BlockState description documents",
+  "examples": [
+    {
+      "variants": {
+        "face=ceiling,facing=east,powered=false": {
+          "model": "minecraft:block/acacia_button",
+          "y": 270,
+          "x": 180
+        },
+        "face=ceiling,facing=east,powered=true": {
+          "model": "minecraft:block/acacia_button_pressed",
+          "y": 270,
+          "x": 180
+        }
+      }
+    },
+    {
+      "multipart": [
+        {
+          "apply": {
+            "model": "minecraft:block/acacia_fence_post"
+          }
+        },
+        {
+          "when": {
+            "north": "true"
+          },
+          "apply": {
+            "model": "minecraft:block/acacia_fence_side",
+            "uvlock": true
+          }
+        },
+        {
+          "when": {
+            "east": "true"
+          },
+          "apply": {
+            "model": "minecraft:block/acacia_fence_side",
+            "y": 90,
+            "uvlock": true
+          }
+        }
+      ]
+    }
+  ],
+  "definitions": {
+    "blockstate:variant": {
+      "properties": {
+        "model": {
+          "$id": "#/properties/variants/properties/*/properties/model",
+          "type": "string",
+          "title": "Model",
+          "description": "URI to model",
+          "default": "",
+          "examples": [
+            "minecraft:block/air",
+            "minecraft:block/block",
+            "minecraft:block/button",
+            "minecraft:block/acacia_button"
+          ]
+        },
+        "y": {
+          "$id": "#/properties/variants/properties/*/properties/y",
+          "type": "integer",
+          "title": "Y axis",
+          "description": "An explanation about the purpose of this instance.",
+          "default": 0,
+          "examples": [
+            270
+          ]
+        },
+        "x": {
+          "$id": "#/properties/variants/properties/*/properties/x",
+          "type": "integer",
+          "title": "X axis",
+          "description": "An explanation about the purpose of this instance.",
+          "default": 0,
+          "examples": [
+            180
+          ]
+        },
+        "uvlock": {
+          "type": "boolean",
+          "title": "UV lock enabled"
+        }
+      }
+    }
+  },
+  "properties": {
+    "multipart": {
+      "$id": "#/properties/multipart",
+      "type": "array",
+      "title": "Multipart block",
+      "description": "Blocks part of a multi-block structure",
+      "examples": [
+        {
+          "apply": {
+            "model": "minecraft:block/acacia_fence_post"
+          }
+        },
+        {
+          "when": {
+            "north": "true"
+          },
+          "apply": {
+            "model": "minecraft:block/acacia_fence_side",
+            "uvlock": true
+          }
+        }
+      ],
+      "items": {
+        "type": "object",
+        "$id": "#/properties/multipart/item",
+        "required": [
+          "apply"
+        ],
+        "properties": {
+          "when": {
+            "$id": "#/properties/multipart/item/when",
+            "title": "When",
+            "description": "Conditional statements for apply",
+            "additionalProperties": {
+              "type": "string",
+              "title": "Rule",
+              "description": "Conditional rule to be checked before apply"
+            }
+          },
+          "apply": {
+            "$id": "#/properties/multipart/item/apply",
+            "title": "Apply",
+            "description": "Block variants to apply. works like variants",
+            "$ref": "#/definitions/blockstate:variant"
+          }
+        }
+      }
+    },
+    "variants": {
+      "$id": "#/properties/variants",
+      "title": "The variants schema",
+      "description": "Block variants, depending on state properties",
+      "type": "object",
+      "examples": [
+        {
+          "powered=true": {
+            "model": "minecraft:block/button_pressed"
+          }
+        },
+        {
+          "face=ceiling,facing=east,powered=false": {
+            "model": "minecraft:block/acacia_button",
+            "y": 270,
+            "x": 180
+          }
+        }
+      ],
+      "required": [],
+      "properties": {},
+      "additionalProperties": {
+        "$id": "#/properties/variants/properties/*",
+        "type": "object",
+        "title": "State query",
+        "description": "Comma separated query to match blocks state properties",
+        "default": {},
+        "examples": [
+          {
+            "model": "minecraft:block/acacia_button",
+            "y": 270,
+            "x": 180
+          }
+        ],
+        "required": [
+          "model"
+        ],
+        "$ref": "#/definitions/blockstate:variant"
+      }
+    }
+  },
+  "additionalProperties": true
+}

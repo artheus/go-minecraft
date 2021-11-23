@@ -38,6 +38,10 @@ func loadImage(fname string) ([]uint8, image.Rectangle, error) {
 	return rgba.Pix, img.Bounds(), nil
 }
 
+type IDrawable interface {
+	Draw()
+}
+
 type BlockRender struct {
 	shader  *glhf.Shader
 	texture *glhf.Texture

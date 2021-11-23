@@ -5,20 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4a42242f-bce0-4158-a969-c42855f509fa" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/camera.go" beforeDir="false" afterPath="$PROJECT_DIR$/camera.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/chunk.go" beforeDir="false" afterPath="$PROJECT_DIR$/chunk.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cube.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/block.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/item.go" beforeDir="false" afterPath="$PROJECT_DIR$/item.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/math.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/player.go" beforeDir="false" afterPath="$PROJECT_DIR$/player.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/render.go" beforeDir="false" afterPath="$PROJECT_DIR$/render.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rpc.go" beforeDir="false" afterPath="$PROJECT_DIR$/rpc.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/shader.go" beforeDir="false" afterPath="$PROJECT_DIR$/shader.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/store.go" beforeDir="false" afterPath="$PROJECT_DIR$/store.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/world.go" beforeDir="false" afterPath="$PROJECT_DIR$/world.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -65,13 +54,15 @@
     <property name="go.modules.go.list.on.any.changes.was.set" value="true" />
     <property name="go.sdk.automatically.set" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/math32" />
-    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
+    <property name="settings.editor.selected.configurable" value="settings.json.schema" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/math32" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+      <recent name="$PROJECT_DIR$/assets/json" />
       <recent name="$PROJECT_DIR$/core" />
     </key>
   </component>
