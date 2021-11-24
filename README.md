@@ -2,7 +2,10 @@
 
 **Please Note!** I am currently doing a major refactoring of the game,
 to better support further development.
-All thanks goes to https://github.com/icexin/gocraft!
+
+**All thanks goes to [icexin](https://github.com/icexin)[/gocraft](https://github.com/icexin/gocraft)!**
+
+_... Original readme follows ..._
 
 A Minecraft like game written in go, just for fun!
 
