@@ -2,6 +2,7 @@ package core
 
 import (
 	"flag"
+	mesh2 "github.com/artheus/go-minecraft/core/mesh"
 	. "github.com/artheus/go-minecraft/math32"
 	"github.com/artheus/go-minecraft/types"
 	"image"
@@ -52,7 +53,7 @@ type BlockRender struct {
 
 	stat Stat
 
-	item *Mesh
+	item *mesh2.Mesh
 }
 
 func NewBlockRender() (*BlockRender, error) {
@@ -97,7 +98,7 @@ func NewBlockRender() (*BlockRender, error) {
 	return r, nil
 }
 
-func (r *BlockRender) makeChunkMesh(c *Chunk, onmainthread bool) *Mesh {
+func (r *BlockRender) makeChunkMesh(c *Chunk, onmainthread bool) *mesh2.Mesh {
 	facedata := r.facePool.Get().([]float32)
 	defer r.facePool.Put(facedata[:0])
 
@@ -121,12 +122,12 @@ func (r *BlockRender) makeChunkMesh(c *Chunk, onmainthread bool) *Mesh {
 	})
 	n := len(facedata) / (r.shader.VertexFormat().Size() / 4)
 	log.Printf("chunk faces:%d", n/6)
-	var mesh *Mesh
+	var mesh *mesh2.Mesh
 	if onmainthread {
-		mesh = NewMesh(r.shader, facedata)
+		mesh = mesh2.NewMesh(r.shader, facedata)
 	} else {
 		mainthread.Call(func() {
-			mesh = NewMesh(r.shader, facedata)
+			mesh = mesh2.NewMesh(r.shader, facedata)
 		})
 	}
 	mesh.Id = c.ID()
@@ -145,7 +146,7 @@ func (r *BlockRender) UpdateItem(w int) {
 	} else {
 		vertices = BlockData(vertices, show, pos, texture)
 	}
-	item := NewMesh(r.shader, vertices)
+	item := mesh2.NewMesh(r.shader, vertices)
 	if r.item != nil {
 		r.item.Release()
 	}
@@ -268,7 +269,7 @@ func (r *BlockRender) updateMeshCache() {
 		if !ok {
 			added = append(added, id)
 		} else {
-			if mesh.(*Mesh).Dirty {
+			if mesh.(*mesh2.Mesh).Dirty {
 				log.Printf("update cache %v", id)
 				added = append(added, id)
 				removed = append(removed, id)
@@ -282,12 +283,12 @@ func (r *BlockRender) updateMeshCache() {
 		added = added[:batchBuildChunk]
 	}
 
-	var removedMesh []*Mesh
+	var removedMesh []*mesh2.Mesh
 	for _, id := range removed {
 		log.Printf("remove cache %v", id)
 		mesh, _ := r.meshcache.Load(id)
 		r.meshcache.Delete(id)
-		removedMesh = append(removedMesh, mesh.(*Mesh))
+		removedMesh = append(removedMesh, mesh.(*mesh2.Mesh))
 	}
 
 	newChunks := game.world.Chunks(added)
@@ -306,14 +307,14 @@ func (r *BlockRender) updateMeshCache() {
 
 // called on mainthread
 func (r *BlockRender) forceChunks(ids []types.ChunkID) {
-	var removedMesh []*Mesh
+	var removedMesh []*mesh2.Mesh
 	chunks := game.world.Chunks(ids)
 	for _, chunk := range chunks {
 		id := chunk.ID()
 		imesh, ok := r.meshcache.Load(id)
-		var mesh *Mesh
+		var mesh *mesh2.Mesh
 		if ok {
-			mesh = imesh.(*Mesh)
+			mesh = imesh.(*mesh2.Mesh)
 		}
 		if ok && !mesh.Dirty {
 			continue
@@ -356,7 +357,7 @@ func (r *BlockRender) DirtyChunk(id types.ChunkID) {
 	if !ok {
 		return
 	}
-	mesh.(*Mesh).Dirty = true
+	mesh.(*mesh2.Mesh).Dirty = true
 }
 
 func (r *BlockRender) UpdateLoop() {
@@ -380,7 +381,7 @@ func (r *BlockRender) drawChunks() {
 	planes := frustumPlanes(&mat)
 	r.stat = Stat{}
 	r.meshcache.Range(func(k, v interface{}) bool {
-		id, mesh := k.(types.ChunkID), v.(*Mesh)
+		id, mesh := k.(types.ChunkID), v.(*mesh2.Mesh)
 		r.stat.CacheChunks++
 		if isChunkVisiable(planes, id) {
 			r.stat.RendingChunks++
@@ -427,76 +428,6 @@ type Stat struct {
 
 func (r *BlockRender) Stat() Stat {
 	return r.stat
-}
-
-type Mesh struct {
-	vao, vbo uint32
-	faces    int
-	Id       types.ChunkID
-	Dirty    bool
-}
-
-func NewMesh(shader *glhf.Shader, data []float32) *Mesh {
-	m := new(Mesh)
-	m.faces = len(data) / (shader.VertexFormat().Size() / 4) / 6
-	if m.faces == 0 {
-		return m
-	}
-	gl.GenVertexArrays(1, &m.vao)
-	gl.GenBuffers(1, &m.vbo)
-	gl.BindVertexArray(m.vao)
-	gl.BindBuffer(gl.ARRAY_BUFFER, m.vbo)
-	gl.BufferData(gl.ARRAY_BUFFER, len(data)*4, gl.Ptr(data), gl.STATIC_DRAW)
-
-	offset := 0
-	for _, attr := range shader.VertexFormat() {
-		loc := gl.GetAttribLocation(shader.ID(), gl.Str(attr.Name+"\x00"))
-		var size int32
-		switch attr.Type {
-		case glhf.Float:
-			size = 1
-		case glhf.Vec2:
-			size = 2
-		case glhf.Vec3:
-			size = 3
-		case glhf.Vec4:
-			size = 4
-		}
-		gl.VertexAttribPointer(
-			uint32(loc),
-			size,
-			gl.FLOAT,
-			false,
-			int32(shader.VertexFormat().Size()),
-			gl.PtrOffset(offset),
-		)
-		gl.EnableVertexAttribArray(uint32(loc))
-		offset += attr.Type.Size()
-	}
-	gl.BindVertexArray(0)
-	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
-	return m
-}
-
-func (m *Mesh) Faces() int {
-	return m.faces
-}
-
-func (m *Mesh) Draw() {
-	if m.vao != 0 {
-		gl.BindVertexArray(m.vao)
-		gl.DrawArrays(gl.TRIANGLES, 0, int32(m.faces)*6)
-		gl.BindVertexArray(0)
-	}
-}
-
-func (m *Mesh) Release() {
-	if m.vao != 0 {
-		gl.DeleteVertexArrays(1, &m.vao)
-		gl.DeleteBuffers(1, &m.vbo)
-		m.vao = 0
-		m.vbo = 0
-	}
 }
 
 type Lines struct {

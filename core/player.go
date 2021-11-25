@@ -1,6 +1,7 @@
 package core
 
 import (
+	mesh2 "github.com/artheus/go-minecraft/core/mesh"
 	. "github.com/artheus/go-minecraft/math32"
 	"log"
 
@@ -25,7 +26,7 @@ type Player struct {
 	s1, s2 playerState
 
 	shader *glhf.Shader
-	mesh   *Mesh
+	mesh   *mesh2.Mesh
 }
 
 // Linear interpolation to calculate player position
@@ -138,9 +139,9 @@ func (r *PlayerRender) UpdateOrAdd(id int32, s proto.PlayerState) {
 			},
 			tex.Texture(64),
 		)
-		var mesh *Mesh
+		var mesh *mesh2.Mesh
 		mainthread.Call(func() {
-			mesh = NewMesh(r.shader, blockData)
+			mesh = mesh2.NewMesh(r.shader, blockData)
 		})
 		p = &Player{
 			shader: r.shader,
