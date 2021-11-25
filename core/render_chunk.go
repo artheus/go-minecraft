@@ -215,9 +215,12 @@ func (r *ChunkRenderer) sortChunks(chunks []types.ChunkID) []types.ChunkID {
 }
 
 func (r *ChunkRenderer) updateMeshCache() {
+	// Get chunk camera is currently in
 	block := NearBlock(game.camera.Pos())
 	chunk := block.ChunkID()
 	x, z := chunk.X, chunk.Z
+
+	// Get which chunks to render (camera culling)
 	n := *renderRadius
 	needed := make(map[types.ChunkID]bool)
 
@@ -230,6 +233,8 @@ func (r *ChunkRenderer) updateMeshCache() {
 			needed[id] = true
 		}
 	}
+
+	// Make lists of which blocks are added or removed
 	var added, removed []types.ChunkID
 	r.meshcache.Range(func(k, v interface{}) bool {
 		id := k.(types.ChunkID)
@@ -240,6 +245,7 @@ func (r *ChunkRenderer) updateMeshCache() {
 		return true
 	})
 
+	// Rebuild cache with needed chunks
 	for id := range needed {
 		mesh, ok := r.meshcache.Load(id)
 		// Rebuild those not cached
@@ -253,13 +259,15 @@ func (r *ChunkRenderer) updateMeshCache() {
 			}
 		}
 	}
-	// Number of chunks constructed at a time
+
+	// Number of chunks constructed in batch
 	const batchBuildChunk = 4
 	r.sortChunks(added)
 	if len(added) > 4 {
 		added = added[:batchBuildChunk]
 	}
 
+	// Delete any removed mesh from meshcache
 	var removedMesh []*mesh2.Mesh
 	for _, id := range removed {
 		log.Printf("remove cache %v", id)
@@ -274,6 +282,7 @@ func (r *ChunkRenderer) updateMeshCache() {
 		r.meshcache.Store(c.ID(), r.makeChunkMesh(c, false))
 	}
 
+	// Release any removed mesh from VRAM
 	mainthread.CallNonBlock(func() {
 		for _, mesh := range removedMesh {
 			mesh.Release()
@@ -282,10 +291,15 @@ func (r *ChunkRenderer) updateMeshCache() {
 
 }
 
-// called on mainthread
+// forceChunks forces any removed mesh from chunks to be released from VRAM
+// must be called on main-thread
 func (r *ChunkRenderer) forceChunks(ids []types.ChunkID) {
 	var removedMesh []*mesh2.Mesh
+
+	// Get requested chunks
 	chunks := game.world.Chunks(ids)
+
+	// Add any removed mesh from requested chunks to removedMesh slice
 	for _, chunk := range chunks {
 		id := chunk.ID()
 		imesh, ok := r.meshcache.Load(id)
@@ -301,6 +315,8 @@ func (r *ChunkRenderer) forceChunks(ids []types.ChunkID) {
 			removedMesh = append(removedMesh, mesh)
 		}
 	}
+
+	// Release any removed mesh from VRAM
 	mainthread.CallNonBlock(func() {
 		for _, mesh := range removedMesh {
 			mesh.Release()
@@ -308,19 +324,26 @@ func (r *ChunkRenderer) forceChunks(ids []types.ChunkID) {
 	})
 }
 
+// forcePlayerChunks runs forceChunks on the chunk the player is currently in
 func (r *ChunkRenderer) forcePlayerChunks() {
 	bid := NearBlock(game.camera.Pos())
 	cid := bid.ChunkID()
+
 	var ids []types.ChunkID
+
 	for dx := -1; dx <= 1; dx++ {
 		for dz := -1; dz <= 1; dz++ {
 			id := types.ChunkID{X: cid.X + dx, Z: cid.Z + dz}
 			ids = append(ids, id)
 		}
 	}
+
 	r.forceChunks(ids)
 }
 
+// checkChunks sends an empty struct to sigch which in turn
+// is caught by UpdateLoop which will run updateMeshCache to
+// update meshcache with mesh surrounding the player
 func (r *ChunkRenderer) checkChunks() {
 	// nonblock signal
 	select {
@@ -329,6 +352,7 @@ func (r *ChunkRenderer) checkChunks() {
 	}
 }
 
+// DirtyChunk marks the chunk (by types.ChunkID) as dirty (changed)
 func (r *ChunkRenderer) DirtyChunk(id types.ChunkID) {
 	mesh, ok := r.meshcache.Load(id)
 	if !ok {
@@ -337,6 +361,8 @@ func (r *ChunkRenderer) DirtyChunk(id types.ChunkID) {
 	mesh.(*mesh2.Mesh).Dirty = true
 }
 
+// UpdateLoop runs a loop for updating meshcache whenever a signal
+// is received on the sigch (signal channel)
 func (r *ChunkRenderer) UpdateLoop() {
 	for {
 		select {
@@ -346,7 +372,10 @@ func (r *ChunkRenderer) UpdateLoop() {
 	}
 }
 
-func (r *ChunkRenderer) drawChunks() {
+// renderChunks will render all chunks visible to player
+// after running forcePlayerChunks to force any changes
+// to mesh in player chunk to be updated in VRAM
+func (r *ChunkRenderer) renderChunks() {
 	r.forcePlayerChunks()
 	r.checkChunks()
 	mat := r.get3dmat()
@@ -369,7 +398,8 @@ func (r *ChunkRenderer) drawChunks() {
 	})
 }
 
-func (r *ChunkRenderer) drawItem() {
+// renderItem will draw the HUD block item, currently selected
+func (r *ChunkRenderer) renderItem() {
 	if r.item == nil {
 		return
 	}
@@ -386,12 +416,13 @@ func (r *ChunkRenderer) drawItem() {
 	r.item.Draw()
 }
 
-func (r *ChunkRenderer) Draw() {
+// Render will render all chunks and HUD block items to screen
+func (r *ChunkRenderer) Render() {
 	r.shader.Begin()
 	r.texture.Begin()
 
-	r.drawChunks()
-	r.drawItem()
+	r.renderChunks()
+	r.renderItem()
 
 	r.shader.End()
 	r.texture.End()

@@ -6,8 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="4a42242f-bce0-4158-a969-c42855f509fa" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/player.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/player.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/render.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/game.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/game.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/render_chunk.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/render_chunk.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/render_line.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/render_line.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

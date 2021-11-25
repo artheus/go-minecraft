@@ -48,7 +48,7 @@ type Game struct {
 	prevtime float64
 
 	blockRender  *ChunkRenderer
-	lineRender   *LineRender
+	lineRender   *LineRenderer
 	playerRender *PlayerRender
 
 	world   *World
@@ -85,7 +85,7 @@ func NewGame(w, h int) (*Game, error) {
 	mainthread.Call(func() {
 		game.blockRender.UpdateItem(game.item)
 	})
-	game.lineRender, err = NewLineRender()
+	game.lineRender, err = NewLineRenderer()
 	if err != nil {
 		return nil, err
 	}
@@ -269,8 +269,8 @@ func (g *Game) Update() {
 		gl.ClearColor(0.57, 0.71, 0.77, 1)
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
-		g.blockRender.Draw()
-		g.lineRender.Draw()
+		g.blockRender.Render()
+		g.lineRender.Render()
 		g.playerRender.Draw()
 
 		g.renderStat()

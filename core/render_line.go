@@ -1,86 +1,24 @@
 package core
 
 import (
+	"github.com/artheus/go-minecraft/core/hud"
 	. "github.com/artheus/go-minecraft/math32"
 	"github.com/faiface/glhf"
 	"github.com/faiface/mainthread"
-	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/go-gl/mathgl/mgl32"
 )
 
-type Lines struct {
-	vao, vbo uint32
-	shader   *glhf.Shader
-	nvertex  int
-}
-
-func NewLines(shader *glhf.Shader, data []float32) *Lines {
-	l := new(Lines)
-	l.shader = shader
-	l.nvertex = len(data) / (shader.VertexFormat().Size() / 4)
-	gl.GenVertexArrays(1, &l.vao)
-	gl.GenBuffers(1, &l.vbo)
-	gl.BindVertexArray(l.vao)
-	gl.BindBuffer(gl.ARRAY_BUFFER, l.vbo)
-	gl.BufferData(gl.ARRAY_BUFFER, len(data)*4, gl.Ptr(data), gl.STATIC_DRAW)
-
-	offset := 0
-	for _, attr := range shader.VertexFormat() {
-		loc := gl.GetAttribLocation(shader.ID(), gl.Str(attr.Name+"\x00"))
-		var size int32
-		switch attr.Type {
-		case glhf.Float:
-			size = 1
-		case glhf.Vec2:
-			size = 2
-		case glhf.Vec3:
-			size = 3
-		case glhf.Vec4:
-			size = 4
-		}
-		gl.VertexAttribPointer(
-			uint32(loc),
-			size,
-			gl.FLOAT,
-			false,
-			int32(shader.VertexFormat().Size()),
-			gl.PtrOffset(offset),
-		)
-		gl.EnableVertexAttribArray(uint32(loc))
-		offset += attr.Type.Size()
-	}
-	gl.BindVertexArray(0)
-	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
-	return l
-}
-
-func (l *Lines) Draw(mat mgl32.Mat4) {
-	if l.vao != 0 {
-		l.shader.SetUniformAttr(0, mat)
-		gl.BindVertexArray(l.vao)
-		gl.DrawArrays(gl.LINES, 0, int32(l.nvertex))
-		gl.BindVertexArray(0)
-	}
-}
-
-func (l *Lines) Release() {
-	if l.vao != 0 {
-		gl.DeleteVertexArrays(1, &l.vao)
-		gl.DeleteBuffers(1, &l.vbo)
-		l.vao = 0
-		l.vbo = 0
-	}
-}
-
-type LineRender struct {
+// LineRenderer is in charge of rendering Lines as HUD on screen
+type LineRenderer struct {
 	shader    *glhf.Shader
-	cross     *Lines
-	wireFrame *Lines
+	cross     *hud.Lines
+	wireFrame *hud.Lines
 	lastBlock Vec3
 }
 
-func NewLineRender() (*LineRender, error) {
-	r := &LineRender{}
+// NewLineRenderer creates a new instance of LineRenderer
+func NewLineRenderer() (*LineRenderer, error) {
+	r := &LineRenderer{}
 	var err error
 	mainthread.Call(func() {
 		r.shader, err = glhf.NewShader(glhf.AttrFormat{
@@ -104,15 +42,18 @@ const (
 	crossDiv = 20
 )
 
-func (r *LineRender) drawCross() {
+// renderCrosshairs will render the HUD crosshairs to screen
+func (r *LineRenderer) renderCrosshairs() {
 	width, height := game.win.GetFramebufferSize()
 	project := mgl32.Ortho2D(0, float32(width), float32(height), 0)
 	model := mgl32.Translate3D(float32(width/2), float32(height/2), 0)
 	model = model.Mul4(mgl32.Scale3D(float32(height/crossDiv), float32(height/crossDiv), 0))
-	r.cross.Draw(project.Mul4(model))
+	r.cross.Render(project.Mul4(model))
 }
 
-func (r *LineRender) drawWireFrame(mat mgl32.Mat4) {
+// renderWireFrame will render a wireframe around blocks currently
+// pointed at by player's crosshairs
+func (r *LineRenderer) renderWireFrame(mat mgl32.Mat4) {
 	var vertices []float32
 	block, _ := game.world.HitTest(game.camera.Pos(), game.camera.Front())
 	if block == nil {
@@ -122,7 +63,7 @@ func (r *LineRender) drawWireFrame(mat mgl32.Mat4) {
 	mat = mat.Mul4(mgl32.Translate3D(float32(block.X), float32(block.Y), float32(block.Z)))
 	mat = mat.Mul4(mgl32.Scale3D(1.06, 1.06, 1.06))
 	if *block == r.lastBlock {
-		r.wireFrame.Draw(mat)
+		r.wireFrame.Render(mat)
 		return
 	}
 
@@ -144,24 +85,26 @@ func (r *LineRender) drawWireFrame(mat mgl32.Mat4) {
 		r.wireFrame.Release()
 	}
 
-	r.wireFrame = NewLines(r.shader, vertices)
-	r.wireFrame.Draw(mat)
+	r.wireFrame = hud.NewLines(r.shader, vertices)
+	r.wireFrame.Render(mat)
 }
 
-func (r *LineRender) Draw() {
+// Render lines (crosshairs and wireframe) to screen
+func (r *LineRenderer) Render() {
 	width, height := game.win.GetSize()
 	projection := mgl32.Perspective(Radian(45), float32(width)/float32(height), 0.01, ChunkWidth)
 	camera := game.camera.Matrix()
 	mat := projection.Mul4(camera)
 
 	r.shader.Begin()
-	r.drawCross()
-	r.drawWireFrame(mat)
+	r.renderCrosshairs()
+	r.renderWireFrame(mat)
 	r.shader.End()
 }
 
-func makeCross(shader *glhf.Shader) *Lines {
-	return NewLines(shader, []float32{
+// makeCross creates the HUD crosshairs vao
+func makeCross(shader *glhf.Shader) *hud.Lines {
+	return hud.NewLines(shader, []float32{
 		-0.5, 0, 0, 0.5, 0, 0,
 		0, -0.5, 0, 0, 0.5, 0,
 	})
