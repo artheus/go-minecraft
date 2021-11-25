@@ -1,6 +1,7 @@
 package core
 
 import (
+	"github.com/artheus/go-minecraft/core/block"
 	mesh2 "github.com/artheus/go-minecraft/core/mesh"
 	"github.com/artheus/go-minecraft/core/texture"
 	. "github.com/artheus/go-minecraft/math32"
@@ -123,9 +124,9 @@ func (r *PlayerRender) UpdateOrAdd(id int32, s proto.PlayerState) {
 	p, ok := r.players[id]
 	if !ok {
 		log.Printf("add new player %d", id)
-		blockData := BlockData(
+		blockData := block.BlockData(
 			[]float32{},
-			ShowSides(
+			block.Sides(
 				true,
 				true,
 				true,

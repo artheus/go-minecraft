@@ -1,6 +1,7 @@
 package core
 
 import (
+	"github.com/artheus/go-minecraft/core/block"
 	"github.com/artheus/go-minecraft/core/hud"
 	. "github.com/artheus/go-minecraft/math32"
 	"github.com/faiface/glhf"
@@ -57,20 +58,20 @@ func (r *LineRenderer) renderCrosshairs() {
 // pointed at by player's crosshairs
 func (r *LineRenderer) renderWireFrame(mat mgl32.Mat4) {
 	var vertices []float32
-	block, _ := game.world.HitTest(game.camera.Pos(), game.camera.Front())
-	if block == nil {
+	b, _ := game.world.HitTest(game.camera.Pos(), game.camera.Front())
+	if b == nil {
 		return
 	}
 
-	mat = mat.Mul4(mgl32.Translate3D(float32(block.X), float32(block.Y), float32(block.Z)))
+	mat = mat.Mul4(mgl32.Translate3D(float32(b.X), float32(b.Y), float32(b.Z)))
 	mat = mat.Mul4(mgl32.Scale3D(1.06, 1.06, 1.06))
-	if *block == r.lastBlock {
+	if *b == r.lastBlock {
 		r.wireFrame.Render(mat)
 		return
 	}
 
-	id := *block
-	show := ShowSides(
+	id := *b
+	show := block.Sides(
 		IsTransparent(game.world.Block(id.Left())),
 		IsTransparent(game.world.Block(id.Right())),
 		IsTransparent(game.world.Block(id.Up())),
@@ -78,11 +79,11 @@ func (r *LineRenderer) renderWireFrame(mat mgl32.Mat4) {
 		IsTransparent(game.world.Block(id.Front())),
 		IsTransparent(game.world.Block(id.Back())),
 	)
-	vertices = WireFrameData(vertices, show)
+	vertices = hud.WireFrameData(vertices, show)
 	if len(vertices) == 0 {
 		return
 	}
-	r.lastBlock = *block
+	r.lastBlock = *b
 	if r.wireFrame != nil {
 		r.wireFrame.Release()
 	}

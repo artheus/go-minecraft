@@ -2,6 +2,8 @@ package core
 
 import (
 	"flag"
+	"github.com/artheus/go-minecraft/core/block"
+	"github.com/artheus/go-minecraft/core/chunk"
 	mesh2 "github.com/artheus/go-minecraft/core/mesh"
 	"github.com/artheus/go-minecraft/core/texture"
 	. "github.com/artheus/go-minecraft/math32"
@@ -75,7 +77,7 @@ func NewBlockRender() (*ChunkRenderer, error) {
 	return r, nil
 }
 
-func (r *ChunkRenderer) makeChunkMesh(c *Chunk, onmainthread bool) *mesh2.Mesh {
+func (r *ChunkRenderer) makeChunkMesh(c *chunk.Chunk, onmainthread bool) *mesh2.Mesh {
 	facedata := r.facePool.Get().([]float32)
 	defer r.facePool.Put(facedata[:0])
 
@@ -83,7 +85,7 @@ func (r *ChunkRenderer) makeChunkMesh(c *Chunk, onmainthread bool) *mesh2.Mesh {
 		if w == 0 {
 			log.Panicf("unexpect 0 item types on %v", id)
 		}
-		show := ShowSides(
+		show := block.Sides(
 			IsTransparent(game.world.Block(id.Left())),
 			IsTransparent(game.world.Block(id.Right())),
 			IsTransparent(game.world.Block(id.Up())),
@@ -92,9 +94,9 @@ func (r *ChunkRenderer) makeChunkMesh(c *Chunk, onmainthread bool) *mesh2.Mesh {
 			IsTransparent(game.world.Block(id.Back())),
 		)
 		if IsPlant(game.world.Block(id)) {
-			facedata = PlantData(facedata, show, id, tex.Texture(w))
+			facedata = block.PlantData(facedata, show, id, tex.Texture(w))
 		} else {
-			facedata = BlockData(facedata, show, id, tex.Texture(w))
+			facedata = block.BlockData(facedata, show, id, tex.Texture(w))
 		}
 	})
 	n := len(facedata) / (r.shader.VertexFormat().Size() / 4)
@@ -116,12 +118,12 @@ func (r *ChunkRenderer) UpdateItem(w int) {
 	vertices := r.facePool.Get().([]float32)
 	defer r.facePool.Put(vertices[:0])
 	texture := tex.Texture(w)
-	show := ShowSides(true, true, true, true, true, true)
+	show := block.Sides(true, true, true, true, true, true)
 	pos := Vec3{0, 0, 0}
 	if IsPlant(w) {
-		vertices = PlantData(vertices, show, pos, texture)
+		vertices = block.PlantData(vertices, show, pos, texture)
 	} else {
-		vertices = BlockData(vertices, show, pos, texture)
+		vertices = block.BlockData(vertices, show, pos, texture)
 	}
 	item := mesh2.NewMesh(r.shader, vertices)
 	if r.item != nil {
@@ -192,7 +194,7 @@ func (r *ChunkRenderer) get2dmat() mgl32.Mat4 {
 }
 
 func (r *ChunkRenderer) sortChunks(chunks []types.ChunkID) []types.ChunkID {
-	nb := NearBlock(game.camera.Pos())
+	nb := chunk.NearBlock(game.camera.Pos())
 	cid := nb.ChunkID()
 	x, z := cid.X, cid.Z
 	mat := r.get3dmat()
@@ -216,7 +218,7 @@ func (r *ChunkRenderer) sortChunks(chunks []types.ChunkID) []types.ChunkID {
 
 func (r *ChunkRenderer) updateMeshCache() {
 	// Get chunk camera is currently in
-	block := NearBlock(game.camera.Pos())
+	block := chunk.NearBlock(game.camera.Pos())
 	chunk := block.ChunkID()
 	x, z := chunk.X, chunk.Z
 
@@ -326,7 +328,7 @@ func (r *ChunkRenderer) forceChunks(ids []types.ChunkID) {
 
 // forcePlayerChunks runs forceChunks on the chunk the player is currently in
 func (r *ChunkRenderer) forcePlayerChunks() {
-	bid := NearBlock(game.camera.Pos())
+	bid := chunk.NearBlock(game.camera.Pos())
 	cid := bid.ChunkID()
 
 	var ids []types.ChunkID

@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"github.com/artheus/go-minecraft/core/chunk"
 	"github.com/faiface/mainthread"
 	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/go-gl/glfw/v3.2/glfw"
@@ -128,7 +129,7 @@ func (g *Game) onMouseButtonCallback(win *glfw.Window, button glfw.MouseButton, 
 		g.setExclusiveMouse(true)
 		return
 	}
-	head := NearBlock(g.camera.Pos())
+	head := chunk.NearBlock(g.camera.Pos())
 	foot := head.Down()
 	block, prev := g.world.HitTest(g.camera.Pos(), g.camera.Front())
 	if button == glfw.MouseButton2 && action == glfw.Press {
@@ -229,7 +230,7 @@ func (g *Game) handleKeyInput(dt float64) {
 
 func (g *Game) CurrentBlockid() Vec3 {
 	pos := g.camera.Pos()
-	return NearBlock(pos)
+	return chunk.NearBlock(pos)
 }
 
 func (g *Game) ShouldClose() bool {
@@ -239,7 +240,7 @@ func (g *Game) ShouldClose() bool {
 func (g *Game) renderStat() {
 	g.fps.Update()
 	p := g.camera.Pos()
-	nb := NearBlock(p)
+	nb := chunk.NearBlock(p)
 	cid := nb.ChunkID()
 	stat := g.blockRender.Stat()
 	title := fmt.Sprintf("[%.2f %.2f %.2f] %v [%d/%d %d] %d", p.X(), p.Y(), p.Z(),

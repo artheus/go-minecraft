@@ -1,6 +1,7 @@
 package core
 
 import (
+	"github.com/artheus/go-minecraft/core/chunk"
 	"github.com/artheus/go-minecraft/types"
 	"log"
 	"sync"
@@ -24,15 +25,15 @@ func NewWorld() *World {
 	}
 }
 
-func (w *World) loadChunk(id types.ChunkID) (*Chunk, bool) {
-	chunk, ok := w.chunks.Get(id)
+func (w *World) loadChunk(id types.ChunkID) (*chunk.Chunk, bool) {
+	c, ok := w.chunks.Get(id)
 	if !ok {
 		return nil, false
 	}
-	return chunk.(*Chunk), true
+	return c.(*chunk.Chunk), true
 }
 
-func (w *World) storeChunk(id types.ChunkID, chunk *Chunk) {
+func (w *World) storeChunk(id types.ChunkID, chunk *chunk.Chunk) {
 	w.chunks.Add(id, chunk)
 }
 
@@ -84,7 +85,7 @@ func (w *World) HitTest(pos mgl32.Vec3, vec mgl32.Vec3) (*Vec3, *Vec3) {
 	)
 
 	for len := float32(0); len < maxLen; len += step {
-		block = NearBlock(pos.Add(vec.Mul(len)))
+		block = chunk.NearBlock(pos.Add(vec.Mul(len)))
 		if prev != block && w.HasBlock(block) {
 			return &block, pprev
 		}
@@ -102,7 +103,7 @@ func (w *World) Block(id Vec3) int {
 	return chunk.Block(id)
 }
 
-func (w *World) BlockChunk(block Vec3) *Chunk {
+func (w *World) BlockChunk(block Vec3) *chunk.Chunk {
 	cid := block.ChunkID()
 	chunk, ok := w.loadChunk(cid)
 	if !ok {
@@ -115,9 +116,9 @@ func (w *World) UpdateBlock(id Vec3, tp int) {
 	chunk := w.BlockChunk(id)
 	if chunk != nil {
 		if tp != 0 {
-			chunk.add(id, tp)
+			chunk.Add(id, tp)
 		} else {
-			chunk.del(id)
+			chunk.Del(id)
 		}
 	}
 	store.UpdateBlock(id, tp)
@@ -161,22 +162,22 @@ func (w *World) HasBlock(id Vec3) bool {
 	return tp != -1 && tp != 0
 }
 
-func (w *World) Chunk(id types.ChunkID) *Chunk {
+func (w *World) Chunk(id types.ChunkID) *chunk.Chunk {
 	p, ok := w.loadChunk(id)
 	if ok {
 		return p
 	}
-	chunk := NewChunk(id)
+	chunk := chunk.NewChunk(id)
 	blocks := makeChunkMap(id)
 	for block, tp := range blocks {
-		chunk.add(block, tp)
+		chunk.Add(block, tp)
 	}
 	err := store.RangeBlocks(id, func(bid Vec3, w int) {
 		if w == 0 {
-			chunk.del(bid)
+			chunk.Del(bid)
 			return
 		}
-		chunk.add(bid, w)
+		chunk.Add(bid, w)
 	})
 	if err != nil {
 		log.Printf("fetch chunk(%v) from db error:%s", id, err)
@@ -184,19 +185,19 @@ func (w *World) Chunk(id types.ChunkID) *Chunk {
 	}
 	ClientFetchChunk(id, func(bid Vec3, w int) {
 		if w == 0 {
-			chunk.del(bid)
+			chunk.Del(bid)
 			return
 		}
-		chunk.add(bid, w)
+		chunk.Add(bid, w)
 		store.UpdateBlock(bid, w)
 	})
 	w.storeChunk(id, chunk)
 	return chunk
 }
 
-func (w *World) Chunks(ids []types.ChunkID) []*Chunk {
-	ch := make(chan *Chunk)
-	var chunks []*Chunk
+func (w *World) Chunks(ids []types.ChunkID) []*chunk.Chunk {
+	ch := make(chan *chunk.Chunk)
+	var chunks []*chunk.Chunk
 	for _, id := range ids {
 		go func(id types.ChunkID) {
 			ch <- w.Chunk(id)

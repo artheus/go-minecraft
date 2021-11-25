@@ -1,13 +1,11 @@
-package core
+package chunk
 
 import (
 	. "github.com/artheus/go-minecraft/math32"
-	"github.com/artheus/go-minecraft/types"
-
+	. "github.com/artheus/go-minecraft/types"
+	"github.com/go-gl/mathgl/mgl32"
 	"log"
 	"sync"
-
-	"github.com/go-gl/mathgl/mgl32"
 )
 
 func NearBlock(pos mgl32.Vec3) Vec3 {
@@ -19,18 +17,18 @@ func NearBlock(pos mgl32.Vec3) Vec3 {
 }
 
 type Chunk struct {
-	id     types.ChunkID
+	id     ChunkID
 	blocks sync.Map // map[Vec3]int
 }
 
-func NewChunk(id types.ChunkID) *Chunk {
+func NewChunk(id ChunkID) *Chunk {
 	c := &Chunk{
 		id: id,
 	}
 	return c
 }
 
-func (c *Chunk) ID() types.ChunkID {
+func (c *Chunk) ID() ChunkID {
 	return c.id
 }
 
@@ -45,14 +43,14 @@ func (c *Chunk) Block(id Vec3) int {
 	return 0
 }
 
-func (c *Chunk) add(id Vec3, w int) {
+func (c *Chunk) Add(id Vec3, w int) {
 	if id.ChunkID() != c.id {
 		log.Panicf("id %v chunk %v", id, c.id)
 	}
 	c.blocks.Store(id, w)
 }
 
-func (c *Chunk) del(id Vec3) {
+func (c *Chunk) Del(id Vec3) {
 	if id.ChunkID() != c.id {
 		log.Panicf("id %v chunk %v", id, c.id)
 	}

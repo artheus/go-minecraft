@@ -1,24 +1,11 @@
-package core
+package block
 
-import . "github.com/artheus/go-minecraft/math32"
+import (
+	"github.com/artheus/go-minecraft/core/texture"
+	. "github.com/artheus/go-minecraft/math32"
+)
 
-type showSide struct {
-	Left, Right,
-	Up, Down,
-	Front, Back bool
-}
-
-func ShowSides(left, right, up, down, front, back bool) showSide {
-	return showSide{left, right, up, down, front, back}
-}
-
-type BlockTexture struct {
-	Left, Right FaceTexture
-	Up, Down    FaceTexture
-	Front, Back FaceTexture
-}
-
-func BlockData(vertices []float32, show showSide, block Vec3, tex *BlockTexture) []float32 {
+func BlockData(vertices []float32, show Side, block Vec3, tex *texture.BlockTexture) []float32 {
 	l, r := tex.Left, tex.Right
 	u, d := tex.Up, tex.Down
 	f, b := tex.Front, tex.Back
@@ -96,112 +83,7 @@ func BlockData(vertices []float32, show showSide, block Vec3, tex *BlockTexture)
 	return vertices
 }
 
-func WireFrameData(vertices []float32, show showSide) []float32 {
-	if show.Left {
-		vertices = append(vertices, []float32{
-			// left
-			-0.5, -0.5, -0.5,
-			-0.5, -0.5, +0.5,
-
-			-0.5, -0.5, +0.5,
-			-0.5, +0.5, +0.5,
-
-			-0.5, +0.5, +0.5,
-			-0.5, +0.5, -0.5,
-
-			-0.5, +0.5, -0.5,
-			-0.5, -0.5, -0.5,
-		}...)
-	}
-	if show.Right {
-		vertices = append(vertices, []float32{
-			// right
-			+0.5, -0.5, +0.5,
-			+0.5, -0.5, -0.5,
-
-			+0.5, -0.5, -0.5,
-			+0.5, +0.5, -0.5,
-
-			+0.5, +0.5, -0.5,
-			+0.5, +0.5, +0.5,
-
-			+0.5, +0.5, +0.5,
-			+0.5, -0.5, +0.5,
-		}...)
-	}
-
-	if show.Up {
-		vertices = append(vertices, []float32{
-			// top
-			-0.5, +0.5, +0.5,
-			+0.5, +0.5, +0.5,
-
-			+0.5, +0.5, +0.5,
-			+0.5, +0.5, -0.5,
-
-			+0.5, +0.5, -0.5,
-			-0.5, +0.5, -0.5,
-
-			-0.5, +0.5, -0.5,
-			-0.5, +0.5, +0.5,
-		}...)
-	}
-
-	if show.Down {
-		vertices = append(vertices, []float32{
-			// bottom
-			+0.5, -0.5, +0.5,
-			-0.5, -0.5, +0.5,
-
-			-0.5, -0.5, +0.5,
-			-0.5, -0.5, -0.5,
-
-			-0.5, -0.5, -0.5,
-			+0.5, -0.5, -0.5,
-
-			+0.5, -0.5, -0.5,
-			+0.5, -0.5, +0.5,
-		}...)
-	}
-
-	if show.Front {
-		// z front
-		vertices = append(vertices, []float32{
-			-0.5, -0.5, +0.5,
-			+0.5, -0.5, +0.5,
-
-			+0.5, -0.5, +0.5,
-			+0.5, +0.5, +0.5,
-
-			+0.5, +0.5, +0.5,
-			-0.5, +0.5, +0.5,
-
-			-0.5, +0.5, +0.5,
-			-0.5, -0.5, +0.5,
-		}...)
-	}
-
-	if show.Back {
-		vertices = append(vertices, []float32{
-			// back
-			+0.5, -0.5, -0.5,
-			-0.5, -0.5, -0.5,
-
-			-0.5, -0.5, -0.5,
-			-0.5, +0.5, -0.5,
-
-			-0.5, +0.5, -0.5,
-			+0.5, +0.5, -0.5,
-
-			+0.5, +0.5, -0.5,
-			+0.5, -0.5, -0.5,
-		}...)
-	}
-
-	return vertices
-}
-
-func PlantData(vertices []float32, _ showSide, block Vec3, tex *BlockTexture) []float32 {
+func PlantData(vertices []float32, _ Side, block Vec3, tex *texture.BlockTexture) []float32 {
 	l, r := tex.Left, tex.Right
 	f, b := tex.Front, tex.Back
 	x, y, z := block.X, block.Y, block.Z
