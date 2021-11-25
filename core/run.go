@@ -1,6 +1,7 @@
 package core
 
 import (
+	"github.com/artheus/go-minecraft/core/item"
 	"log"
 	"time"
 )
@@ -10,7 +11,7 @@ var (
 )
 
 func Run() {
-	err := LoadTextureDesc()
+	err := item.LoadTextureDesc()
 	if err != nil {
 		log.Fatal(err)
 	}

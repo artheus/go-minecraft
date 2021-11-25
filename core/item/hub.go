@@ -1,4 +1,4 @@
-package core
+package item
 
 import (
 	"github.com/artheus/go-minecraft/core/texture"
@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	tex = NewItemHub()
+	Tex = NewItemHub()
 )
 
 func MakeFaceTexture(idx int) texture.FaceTexture {
@@ -25,17 +25,21 @@ func MakeFaceTexture(idx int) texture.FaceTexture {
 	}
 }
 
-type ItemHub struct {
+type Hub struct {
 	tex map[int]*texture.BlockTexture
 }
 
-func NewItemHub() *ItemHub {
-	return &ItemHub{
+func NewItemHub() *Hub {
+	return &Hub{
 		tex: make(map[int]*texture.BlockTexture),
 	}
 }
 
-func (h *ItemHub) AddTexture(w, l, r, u, d, f, b int) {
+func (h *Hub) Tex() map[int]*texture.BlockTexture {
+	return h.tex
+}
+
+func (h *Hub) AddTexture(w, l, r, u, d, f, b int) {
 	h.tex[w] = &texture.BlockTexture{
 		Left:  MakeFaceTexture(l),
 		Right: MakeFaceTexture(r),
@@ -46,7 +50,7 @@ func (h *ItemHub) AddTexture(w, l, r, u, d, f, b int) {
 	}
 }
 
-func (h *ItemHub) Texture(w int) *texture.BlockTexture {
+func (h *Hub) Texture(w int) *texture.BlockTexture {
 	t, ok := h.tex[w]
 	if !ok {
 		log.Printf("%d not found", w)
@@ -57,7 +61,7 @@ func (h *ItemHub) Texture(w int) *texture.BlockTexture {
 
 func LoadTextureDesc() error {
 	for w, f := range itemDesc {
-		tex.AddTexture(w, f[0], f[1], f[2], f[3], f[4], f[5])
+		Tex.AddTexture(w, f[0], f[1], f[2], f[3], f[4], f[5])
 	}
 	return nil
 }
@@ -131,7 +135,7 @@ var itemDesc = map[int][6]int{
 	64: {226, 224, 241, 209, 227, 225},
 }
 
-var availableItems = []int{
+var AvailableItems = []int{
 	1,
 	2,
 	3,

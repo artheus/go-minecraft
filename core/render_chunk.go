@@ -4,6 +4,7 @@ import (
 	"flag"
 	"github.com/artheus/go-minecraft/core/block"
 	"github.com/artheus/go-minecraft/core/chunk"
+	"github.com/artheus/go-minecraft/core/item"
 	mesh2 "github.com/artheus/go-minecraft/core/mesh"
 	"github.com/artheus/go-minecraft/core/texture"
 	. "github.com/artheus/go-minecraft/math32"
@@ -94,9 +95,9 @@ func (r *ChunkRenderer) makeChunkMesh(c *chunk.Chunk, onmainthread bool) *mesh2.
 			IsTransparent(game.world.Block(id.Back())),
 		)
 		if IsPlant(game.world.Block(id)) {
-			facedata = block.PlantData(facedata, show, id, tex.Texture(w))
+			facedata = block.PlantData(facedata, show, id, item.Tex.Texture(w))
 		} else {
-			facedata = block.BlockData(facedata, show, id, tex.Texture(w))
+			facedata = block.BlockData(facedata, show, id, item.Tex.Texture(w))
 		}
 	})
 	n := len(facedata) / (r.shader.VertexFormat().Size() / 4)
@@ -117,7 +118,7 @@ func (r *ChunkRenderer) makeChunkMesh(c *chunk.Chunk, onmainthread bool) *mesh2.
 func (r *ChunkRenderer) UpdateItem(w int) {
 	vertices := r.facePool.Get().([]float32)
 	defer r.facePool.Put(vertices[:0])
-	texture := tex.Texture(w)
+	texture := item.Tex.Texture(w)
 	show := block.Sides(true, true, true, true, true, true)
 	pos := Vec3{0, 0, 0}
 	if IsPlant(w) {

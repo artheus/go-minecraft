@@ -7,8 +7,10 @@
     <list default="true" id="4a42242f-bce0-4158-a969-c42855f509fa" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/game.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/game.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/item.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/item/hub.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/player.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/player.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/render_chunk.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/render_chunk.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/render_line.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/render_line.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/run.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/run.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -62,6 +64,7 @@
       <recent name="$PROJECT_DIR$/math32" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/core/item" />
       <recent name="$PROJECT_DIR$/core" />
       <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/assets/json" />

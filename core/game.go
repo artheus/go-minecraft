@@ -3,6 +3,7 @@ package core
 import (
 	"fmt"
 	"github.com/artheus/go-minecraft/core/chunk"
+	"github.com/artheus/go-minecraft/core/item"
 	"github.com/faiface/mainthread"
 	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/go-gl/glfw/v3.2/glfw"
@@ -67,7 +68,7 @@ func NewGame(w, h int) (*Game, error) {
 		game *Game
 	)
 	game = new(Game)
-	game.item = availableItems[0]
+	game.item = item.AvailableItems[0]
 
 	mainthread.Call(func() {
 		win := initGL(w, h)
@@ -178,15 +179,15 @@ func (g *Game) onKeyCallback(win *glfw.Window, key glfw.Key, scancode int, actio
 			g.vy = 8
 		}
 	case glfw.KeyE:
-		g.itemidx = (1 + g.itemidx) % len(availableItems)
-		g.item = availableItems[g.itemidx]
+		g.itemidx = (1 + g.itemidx) % len(item.AvailableItems)
+		g.item = item.AvailableItems[g.itemidx]
 		g.blockRender.UpdateItem(g.item)
 	case glfw.KeyR:
 		g.itemidx--
 		if g.itemidx < 0 {
-			g.itemidx = len(availableItems) - 1
+			g.itemidx = len(item.AvailableItems) - 1
 		}
-		g.item = availableItems[g.itemidx]
+		g.item = item.AvailableItems[g.itemidx]
 		g.blockRender.UpdateItem(g.item)
 	}
 }

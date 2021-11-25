@@ -2,6 +2,7 @@ package core
 
 import (
 	"github.com/artheus/go-minecraft/core/block"
+	"github.com/artheus/go-minecraft/core/item"
 	mesh2 "github.com/artheus/go-minecraft/core/mesh"
 	"github.com/artheus/go-minecraft/core/texture"
 	. "github.com/artheus/go-minecraft/math32"
@@ -139,7 +140,7 @@ func (r *PlayerRender) UpdateOrAdd(id int32, s proto.PlayerState) {
 				0,
 				0,
 			},
-			tex.Texture(64),
+			item.Tex.Texture(64),
 		)
 		var mesh *mesh2.Mesh
 		mainthread.Call(func() {
