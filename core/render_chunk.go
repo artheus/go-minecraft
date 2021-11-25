@@ -19,7 +19,7 @@ var (
 	renderRadius = flag.Int("r", 6, "render radius")
 )
 
-type BlockRender struct {
+type ChunkRenderer struct {
 	shader  *glhf.Shader
 	texture *glhf.Texture
 
@@ -33,7 +33,7 @@ type BlockRender struct {
 	item *mesh2.Mesh
 }
 
-func NewBlockRender() (*BlockRender, error) {
+func NewBlockRender() (*ChunkRenderer, error) {
 	var (
 		err error
 	)
@@ -42,7 +42,7 @@ func NewBlockRender() (*BlockRender, error) {
 		return nil, err
 	}
 
-	r := &BlockRender{
+	r := &ChunkRenderer{
 		sigch: make(chan struct{}, 4),
 	}
 
@@ -75,7 +75,7 @@ func NewBlockRender() (*BlockRender, error) {
 	return r, nil
 }
 
-func (r *BlockRender) makeChunkMesh(c *Chunk, onmainthread bool) *mesh2.Mesh {
+func (r *ChunkRenderer) makeChunkMesh(c *Chunk, onmainthread bool) *mesh2.Mesh {
 	facedata := r.facePool.Get().([]float32)
 	defer r.facePool.Put(facedata[:0])
 
@@ -112,7 +112,7 @@ func (r *BlockRender) makeChunkMesh(c *Chunk, onmainthread bool) *mesh2.Mesh {
 }
 
 // call on mainthread
-func (r *BlockRender) UpdateItem(w int) {
+func (r *ChunkRenderer) UpdateItem(w int) {
 	vertices := r.facePool.Get().([]float32)
 	defer r.facePool.Put(vertices[:0])
 	texture := tex.Texture(w)
@@ -176,7 +176,7 @@ func isChunkVisiable(planes []mgl32.Vec4, id types.ChunkID) bool {
 	return true
 }
 
-func (r *BlockRender) get3dmat() mgl32.Mat4 {
+func (r *ChunkRenderer) get3dmat() mgl32.Mat4 {
 	n := float32(*renderRadius * ChunkWidth)
 	width, height := game.win.GetSize()
 	mat := mgl32.Perspective(Radian(45), float32(width)/float32(height), 0.01, n)
@@ -184,14 +184,14 @@ func (r *BlockRender) get3dmat() mgl32.Mat4 {
 	return mat
 }
 
-func (r *BlockRender) get2dmat() mgl32.Mat4 {
+func (r *ChunkRenderer) get2dmat() mgl32.Mat4 {
 	n := float32(*renderRadius * ChunkWidth)
 	mat := mgl32.Ortho(-n, n, -n, n, -1, n)
 	mat = mat.Mul4(game.camera.Matrix())
 	return mat
 }
 
-func (r *BlockRender) sortChunks(chunks []types.ChunkID) []types.ChunkID {
+func (r *ChunkRenderer) sortChunks(chunks []types.ChunkID) []types.ChunkID {
 	nb := NearBlock(game.camera.Pos())
 	cid := nb.ChunkID()
 	x, z := cid.X, cid.Z
@@ -214,7 +214,7 @@ func (r *BlockRender) sortChunks(chunks []types.ChunkID) []types.ChunkID {
 	return chunks
 }
 
-func (r *BlockRender) updateMeshCache() {
+func (r *ChunkRenderer) updateMeshCache() {
 	block := NearBlock(game.camera.Pos())
 	chunk := block.ChunkID()
 	x, z := chunk.X, chunk.Z
@@ -283,7 +283,7 @@ func (r *BlockRender) updateMeshCache() {
 }
 
 // called on mainthread
-func (r *BlockRender) forceChunks(ids []types.ChunkID) {
+func (r *ChunkRenderer) forceChunks(ids []types.ChunkID) {
 	var removedMesh []*mesh2.Mesh
 	chunks := game.world.Chunks(ids)
 	for _, chunk := range chunks {
@@ -308,7 +308,7 @@ func (r *BlockRender) forceChunks(ids []types.ChunkID) {
 	})
 }
 
-func (r *BlockRender) forcePlayerChunks() {
+func (r *ChunkRenderer) forcePlayerChunks() {
 	bid := NearBlock(game.camera.Pos())
 	cid := bid.ChunkID()
 	var ids []types.ChunkID
@@ -321,7 +321,7 @@ func (r *BlockRender) forcePlayerChunks() {
 	r.forceChunks(ids)
 }
 
-func (r *BlockRender) checkChunks() {
+func (r *ChunkRenderer) checkChunks() {
 	// nonblock signal
 	select {
 	case r.sigch <- struct{}{}:
@@ -329,7 +329,7 @@ func (r *BlockRender) checkChunks() {
 	}
 }
 
-func (r *BlockRender) DirtyChunk(id types.ChunkID) {
+func (r *ChunkRenderer) DirtyChunk(id types.ChunkID) {
 	mesh, ok := r.meshcache.Load(id)
 	if !ok {
 		return
@@ -337,7 +337,7 @@ func (r *BlockRender) DirtyChunk(id types.ChunkID) {
 	mesh.(*mesh2.Mesh).Dirty = true
 }
 
-func (r *BlockRender) UpdateLoop() {
+func (r *ChunkRenderer) UpdateLoop() {
 	for {
 		select {
 		case <-r.sigch:
@@ -346,7 +346,7 @@ func (r *BlockRender) UpdateLoop() {
 	}
 }
 
-func (r *BlockRender) drawChunks() {
+func (r *ChunkRenderer) drawChunks() {
 	r.forcePlayerChunks()
 	r.checkChunks()
 	mat := r.get3dmat()
@@ -369,7 +369,7 @@ func (r *BlockRender) drawChunks() {
 	})
 }
 
-func (r *BlockRender) drawItem() {
+func (r *ChunkRenderer) drawItem() {
 	if r.item == nil {
 		return
 	}
@@ -386,7 +386,7 @@ func (r *BlockRender) drawItem() {
 	r.item.Draw()
 }
 
-func (r *BlockRender) Draw() {
+func (r *ChunkRenderer) Draw() {
 	r.shader.Begin()
 	r.texture.Begin()
 
@@ -403,6 +403,6 @@ type Stat struct {
 	RendingChunks int
 }
 
-func (r *BlockRender) Stat() Stat {
+func (r *ChunkRenderer) Stat() Stat {
 	return r.stat
 }

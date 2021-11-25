@@ -47,7 +47,7 @@ type Game struct {
 	vy       float32
 	prevtime float64
 
-	blockRender  *BlockRender
+	blockRender  *ChunkRenderer
 	lineRender   *LineRender
 	playerRender *PlayerRender
 
