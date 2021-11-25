@@ -39,7 +39,9 @@ func NewLineRenderer() (*LineRenderer, error) {
 }
 
 const (
-	crossDiv = 20
+	// crossDivider is a divider for crosshairs size
+	// higher value = smaller cross and vise-versa
+	crossDivider = 20
 )
 
 // renderCrosshairs will render the HUD crosshairs to screen
@@ -47,7 +49,7 @@ func (r *LineRenderer) renderCrosshairs() {
 	width, height := game.win.GetFramebufferSize()
 	project := mgl32.Ortho2D(0, float32(width), float32(height), 0)
 	model := mgl32.Translate3D(float32(width/2), float32(height/2), 0)
-	model = model.Mul4(mgl32.Scale3D(float32(height/crossDiv), float32(height/crossDiv), 0))
+	model = model.Mul4(mgl32.Scale3D(float32(height/crossDivider), float32(height/crossDivider), 0))
 	r.cross.Render(project.Mul4(model))
 }
 
