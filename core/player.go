@@ -2,6 +2,7 @@ package core
 
 import (
 	mesh2 "github.com/artheus/go-minecraft/core/mesh"
+	"github.com/artheus/go-minecraft/core/texture"
 	. "github.com/artheus/go-minecraft/math32"
 	"log"
 
@@ -77,7 +78,7 @@ func NewPlayerRender() (*PlayerRender, error) {
 	var (
 		err error
 	)
-	img, rect, err := loadImage(*texturePath)
+	img, rect, err := texture.LoadImage(*texturePath)
 	if err != nil {
 		return nil, err
 	}
