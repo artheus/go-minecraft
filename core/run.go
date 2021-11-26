@@ -1,48 +1,59 @@
 package core
 
 import (
+	"github.com/artheus/go-minecraft/core/ctx"
+	"github.com/artheus/go-minecraft/core/game"
+	"github.com/artheus/go-minecraft/core/game/rpc"
+	"github.com/artheus/go-minecraft/core/game/store"
 	"github.com/artheus/go-minecraft/core/item"
 	"log"
 	"time"
 )
 
-var (
-	game *Game
-)
-
 func Run() {
-	err := item.LoadTextureDesc()
+	var err error
+	var gameApp *game.Application
+
+	err = item.LoadTextureDesc()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = InitStore()
+	err = store.InitStore()
 	if err != nil {
 		log.Panic(err)
 	}
-	defer store.Close()
+	defer store.Storage.Close()
 
-	err = InitClient()
-	if err != nil {
-		log.Panic(err)
-	}
-	if client != nil {
-		defer client.Close()
-	}
-
-	game, err = NewGame(800, 600)
+	gameApp, err = game.NewGame(800, 600)
 	if err != nil {
 		log.Panic(err)
 	}
 
-	game.Camera().Restore(store.GetPlayerState())
+	appCtx, err := ctx.NewContext(gameApp)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	gameApp.Init(appCtx)
+
+	err = rpc.InitClient(appCtx)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	if rpc.Client != nil {
+		defer rpc.Client.Close()
+	}
+
+	gameApp.Camera().Restore(store.Storage.GetPlayerState())
 	tick := time.Tick(time.Second / 60)
-	for !game.ShouldClose() {
+	for !gameApp.ShouldClose() {
 		<-tick
-		game.Update()
+		gameApp.Update()
 	}
 
-	if err = store.UpdatePlayerState(game.Camera().State()); err != nil {
+	if err = store.Storage.UpdatePlayerState(gameApp.Camera().State()); err != nil {
 		log.Panic(err)
 	}
 }

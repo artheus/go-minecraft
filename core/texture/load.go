@@ -1,9 +1,14 @@
 package texture
 
 import (
+	"flag"
 	"image"
 	"image/draw"
 	"os"
+)
+
+var (
+	TexturePath = flag.String("t", "texture.png", "texture file")
 )
 
 func LoadImage(fname string) ([]uint8, image.Rectangle, error) {

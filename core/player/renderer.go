@@ -1,10 +1,11 @@
-package core
+package player
 
 import (
 	"github.com/artheus/go-minecraft/core/block"
+	"github.com/artheus/go-minecraft/core/ctx"
 	"github.com/artheus/go-minecraft/core/item"
-	mesh2 "github.com/artheus/go-minecraft/core/mesh"
 	"github.com/artheus/go-minecraft/core/texture"
+	. "github.com/artheus/go-minecraft/core/types"
 	. "github.com/artheus/go-minecraft/math32"
 	"log"
 
@@ -15,11 +16,6 @@ import (
 	"github.com/icexin/gocraft-server/proto"
 )
 
-type PlayerState struct {
-	X, Y, Z float32
-	Rx, Ry  float32
-}
-
 type playerState struct {
 	PlayerState
 	time float64
@@ -29,7 +25,7 @@ type Player struct {
 	s1, s2 playerState
 
 	shader *glhf.Shader
-	mesh   *mesh2.Mesh
+	mesh   *Mesh
 }
 
 // Linear interpolation to calculate player position
@@ -70,23 +66,25 @@ func (p *Player) Release() {
 	p.mesh.Release()
 }
 
-type PlayerRender struct {
+type PlayerRenderer struct {
+	ctx     *ctx.Context
 	shader  *glhf.Shader
 	texture *glhf.Texture
 	players map[int32]*Player
 }
 
-func NewPlayerRender() (*PlayerRender, error) {
+func NewPlayerRenderer(ctx *ctx.Context) (*PlayerRenderer, error) {
 	var (
 		err error
 	)
-	img, rect, err := texture.LoadImage(*texturePath)
+	img, rect, err := texture.LoadImage(*texture.TexturePath)
 	if err != nil {
 		return nil, err
 	}
 
-	r := &PlayerRender{
+	r := &PlayerRenderer{
 		players: make(map[int32]*Player),
+		ctx:     ctx,
 	}
 	mainthread.Call(func() {
 		r.shader, err = glhf.NewShader(glhf.AttrFormat{
@@ -110,7 +108,7 @@ func NewPlayerRender() (*PlayerRender, error) {
 	return r, nil
 }
 
-func (r *PlayerRender) UpdateOrAdd(id int32, s proto.PlayerState) {
+func (r *PlayerRenderer) UpdateOrAdd(id int32, s proto.PlayerState) {
 	state := playerState{
 		PlayerState: PlayerState{
 			X:  s.X,
@@ -142,9 +140,9 @@ func (r *PlayerRender) UpdateOrAdd(id int32, s proto.PlayerState) {
 			},
 			item.Tex.Texture(64),
 		)
-		var mesh *mesh2.Mesh
+		var mesh *Mesh
 		mainthread.Call(func() {
-			mesh = mesh2.NewMesh(r.shader, blockData)
+			mesh = NewMesh(r.shader, blockData)
 		})
 		p = &Player{
 			shader: r.shader,
@@ -156,7 +154,7 @@ func (r *PlayerRender) UpdateOrAdd(id int32, s proto.PlayerState) {
 	p.UpdateState(state)
 }
 
-func (r *PlayerRender) Remove(id int32) {
+func (r *PlayerRenderer) Remove(id int32) {
 	log.Printf("remove player %d", id)
 	p, ok := r.players[id]
 	if ok {
@@ -168,8 +166,8 @@ func (r *PlayerRender) Remove(id int32) {
 
 }
 
-func (r *PlayerRender) Draw() {
-	mat := game.blockRender.get3dmat()
+func (r *PlayerRenderer) Render() {
+	mat := r.ctx.Game().ChunkRenderer().Get3dMat()
 	r.shader.Begin()
 	r.texture.Begin()
 	for _, p := range r.players {

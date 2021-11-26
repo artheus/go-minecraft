@@ -1,9 +1,15 @@
-package core
+package game
 
 import (
 	"fmt"
 	"github.com/artheus/go-minecraft/core/chunk"
+	"github.com/artheus/go-minecraft/core/ctx"
+	"github.com/artheus/go-minecraft/core/game/rpc"
+	"github.com/artheus/go-minecraft/core/game/world"
+	"github.com/artheus/go-minecraft/core/hud"
 	"github.com/artheus/go-minecraft/core/item"
+	"github.com/artheus/go-minecraft/core/player"
+	"github.com/artheus/go-minecraft/core/types"
 	"github.com/faiface/mainthread"
 	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/go-gl/glfw/v3.2/glfw"
@@ -14,7 +20,7 @@ import (
 	. "github.com/artheus/go-minecraft/math32"
 )
 
-func initGL(w, h int) *glfw.Window {
+func InitGL(w, h int) *glfw.Window {
 	err := glfw.Init()
 	if err != nil {
 		log.Fatal(err)
@@ -41,91 +47,121 @@ func initGL(w, h int) *glfw.Window {
 	return win
 }
 
-type Game struct {
-	win *glfw.Window
+type Application struct {
+	Ctx    *ctx.Context
+	window *glfw.Window
 
-	camera   *Camera
-	lx, ly   float64
+	camera *player.Camera
+	lx, ly float64
 	vy       float32
 	prevtime float64
 
-	blockRender  *ChunkRenderer
-	lineRender   *LineRenderer
-	playerRender *PlayerRender
+	lineRenderer   *hud.LineRenderer
+	chunkRenderer  *chunk.ChunkRenderer
+	playerRenderer *player.PlayerRenderer
 
-	world   *World
+	world   *world.World
 	itemidx int
 	item    int
-	fps     FPS
+	fps     hud.FPS
 
 	exclusiveMouse bool
 	closed         bool
 }
 
-func NewGame(w, h int) (*Game, error) {
-	var (
-		err  error
-		game *Game
-	)
-	game = new(Game)
+func NewGame(w, h int) (game *Application, err error) {
+	game = new(Application)
+
 	game.item = item.AvailableItems[0]
 
 	mainthread.Call(func() {
-		win := initGL(w, h)
+		win := InitGL(w, h)
 		win.SetMouseButtonCallback(game.onMouseButtonCallback)
 		win.SetCursorPosCallback(game.onCursorPosCallback)
 		win.SetFramebufferSizeCallback(game.onFrameBufferSizeCallback)
 		win.SetKeyCallback(game.onKeyCallback)
-		game.win = win
+		game.window = win
 	})
-	game.world = NewWorld()
-	game.camera = NewCamera(mgl32.Vec3{0, 16, 0})
-	game.blockRender, err = NewBlockRender()
-	if err != nil {
-		return nil, err
-	}
-	mainthread.Call(func() {
-		game.blockRender.UpdateItem(game.item)
-	})
-	game.lineRender, err = NewLineRenderer()
-	if err != nil {
-		return nil, err
-	}
-	game.playerRender, err = NewPlayerRender()
-	if err != nil {
-		return nil, err
-	}
-	go game.blockRender.UpdateLoop()
-	go game.syncPlayerLoop()
-	return game, nil
+
+	return
 }
 
-func (g *Game) setExclusiveMouse(exclusive bool) {
+func (g *Application) Init(ctx *ctx.Context) (err error) {
+	g.chunkRenderer, err = chunk.NewChunkRenderer(ctx)
+	if err != nil {
+		return err
+	}
+
+	mainthread.Call(func() {
+		g.chunkRenderer.UpdateItem(item.AvailableItems[0])
+	})
+
+	g.lineRenderer, err = hud.NewLineRenderer(ctx)
+	if err != nil {
+		return err
+	}
+
+	g.playerRenderer, err = player.NewPlayerRenderer(ctx)
+	if err != nil {
+		return err
+	}
+
+	go g.chunkRenderer.UpdateLoop()
+
+	g.world = world.NewWorld(ctx)
+	g.camera = player.NewCamera(mgl32.Vec3{0, 16, 0})
+
+	go g.syncPlayerLoop()
+
+	return nil
+}
+
+func (g *Application) setExclusiveMouse(exclusive bool) {
 	if exclusive {
-		g.win.SetInputMode(glfw.CursorMode, glfw.CursorDisabled)
+		g.window.SetInputMode(glfw.CursorMode, glfw.CursorDisabled)
 	} else {
-		g.win.SetInputMode(glfw.CursorMode, glfw.CursorNormal)
+		g.window.SetInputMode(glfw.CursorMode, glfw.CursorNormal)
 	}
 	g.exclusiveMouse = exclusive
 }
 
-func (g *Game) Camera() *Camera {
+func (g *Application) Camera() types.ICamera {
 	return g.camera
 }
 
-func (g *Game) dirtyBlock(id Vec3) {
+func (g *Application) World() types.IWorld {
+	return g.world
+}
+
+func (g *Application) Window() *glfw.Window {
+	return g.window
+}
+
+func (g *Application) LineRenderer() types.ILineRenderer {
+	return g.lineRenderer
+}
+
+func (g *Application) PlayerRenderer() types.IPlayerRenderer {
+	return g.playerRenderer
+}
+
+func (g *Application) ChunkRenderer() types.IChunkRenderer {
+	return g.chunkRenderer
+}
+
+func (g *Application) dirtyBlock(id Vec3) {
 	cid := id.ChunkID()
-	g.blockRender.DirtyChunk(cid)
+	g.chunkRenderer.DirtyChunk(cid)
 	neighbors := []Vec3{id.Left(), id.Right(), id.Front(), id.Back()}
 	for _, neighbor := range neighbors {
 		chunkid := neighbor.ChunkID()
 		if chunkid != cid {
-			g.blockRender.DirtyChunk(chunkid)
+			g.chunkRenderer.DirtyChunk(chunkid)
 		}
 	}
 }
 
-func (g *Game) onMouseButtonCallback(win *glfw.Window, button glfw.MouseButton, action glfw.Action, mod glfw.ModifierKey) {
+func (g *Application) onMouseButtonCallback(_ *glfw.Window, button glfw.MouseButton, action glfw.Action, _ glfw.ModifierKey) {
 	if !g.exclusiveMouse {
 		g.setExclusiveMouse(true)
 		return
@@ -137,23 +173,23 @@ func (g *Game) onMouseButtonCallback(win *glfw.Window, button glfw.MouseButton, 
 		if prev != nil && *prev != head && *prev != foot {
 			g.world.UpdateBlock(*prev, g.item)
 			g.dirtyBlock(*prev)
-			go ClientUpdateBlock(*prev, g.item)
+			go rpc.ClientUpdateBlock(*prev, g.item)
 		}
 	}
 	if button == glfw.MouseButton1 && action == glfw.Press {
 		if block != nil {
 			g.world.UpdateBlock(*block, 0)
 			g.dirtyBlock(*block)
-			go ClientUpdateBlock(*block, 0)
+			go rpc.ClientUpdateBlock(*block, 0)
 		}
 	}
 }
 
-func (g *Game) onFrameBufferSizeCallback(window *glfw.Window, width, height int) {
+func (g *Application) onFrameBufferSizeCallback(window *glfw.Window, width, height int) {
 	gl.Viewport(0, 0, int32(width), int32(height))
 }
 
-func (g *Game) onCursorPosCallback(win *glfw.Window, xpos float64, ypos float64) {
+func (g *Application) onCursorPosCallback(win *glfw.Window, xpos float64, ypos float64) {
 	if !g.exclusiveMouse {
 		return
 	}
@@ -166,7 +202,7 @@ func (g *Game) onCursorPosCallback(win *glfw.Window, xpos float64, ypos float64)
 	g.camera.OnAngleChange(float32(dx), float32(dy))
 }
 
-func (g *Game) onKeyCallback(win *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
+func (g *Application) onKeyCallback(win *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
 	if action != glfw.Press {
 		return
 	}
@@ -181,36 +217,36 @@ func (g *Game) onKeyCallback(win *glfw.Window, key glfw.Key, scancode int, actio
 	case glfw.KeyE:
 		g.itemidx = (1 + g.itemidx) % len(item.AvailableItems)
 		g.item = item.AvailableItems[g.itemidx]
-		g.blockRender.UpdateItem(g.item)
+		g.chunkRenderer.UpdateItem(g.item)
 	case glfw.KeyR:
 		g.itemidx--
 		if g.itemidx < 0 {
 			g.itemidx = len(item.AvailableItems) - 1
 		}
 		g.item = item.AvailableItems[g.itemidx]
-		g.blockRender.UpdateItem(g.item)
+		g.chunkRenderer.UpdateItem(g.item)
 	}
 }
 
-func (g *Game) handleKeyInput(dt float64) {
+func (g *Application) handleKeyInput(dt float64) {
 	speed := float32(0.1)
 	if g.camera.Flying() {
 		speed = 0.2
 	}
-	if g.win.GetKey(glfw.KeyEscape) == glfw.Press {
+	if g.window.GetKey(glfw.KeyEscape) == glfw.Press {
 		g.setExclusiveMouse(false)
 	}
-	if g.win.GetKey(glfw.KeyW) == glfw.Press {
-		g.camera.OnMoveChange(MoveForward, speed)
+	if g.window.GetKey(glfw.KeyW) == glfw.Press {
+		g.camera.OnMoveChange(player.MoveForward, speed)
 	}
-	if g.win.GetKey(glfw.KeyS) == glfw.Press {
-		g.camera.OnMoveChange(MoveBackward, speed)
+	if g.window.GetKey(glfw.KeyS) == glfw.Press {
+		g.camera.OnMoveChange(player.MoveBackward, speed)
 	}
-	if g.win.GetKey(glfw.KeyA) == glfw.Press {
-		g.camera.OnMoveChange(MoveLeft, speed)
+	if g.window.GetKey(glfw.KeyA) == glfw.Press {
+		g.camera.OnMoveChange(player.MoveLeft, speed)
 	}
-	if g.win.GetKey(glfw.KeyD) == glfw.Press {
-		g.camera.OnMoveChange(MoveRight, speed)
+	if g.window.GetKey(glfw.KeyD) == glfw.Press {
+		g.camera.OnMoveChange(player.MoveRight, speed)
 	}
 	pos := g.camera.Pos()
 	stop := false
@@ -229,34 +265,34 @@ func (g *Game) handleKeyInput(dt float64) {
 	g.camera.SetPos(pos)
 }
 
-func (g *Game) CurrentBlockid() Vec3 {
+func (g *Application) CurrentBlockid() Vec3 {
 	pos := g.camera.Pos()
 	return chunk.NearBlock(pos)
 }
 
-func (g *Game) ShouldClose() bool {
+func (g *Application) ShouldClose() bool {
 	return g.closed
 }
 
-func (g *Game) renderStat() {
+func (g *Application) renderStat() {
 	g.fps.Update()
 	p := g.camera.Pos()
 	nb := chunk.NearBlock(p)
 	cid := nb.ChunkID()
-	stat := g.blockRender.Stat()
+	stat := g.chunkRenderer.State()
 	title := fmt.Sprintf("[%.2f %.2f %.2f] %v [%d/%d %d] %d", p.X(), p.Y(), p.Z(),
 		cid, stat.RendingChunks, stat.CacheChunks, stat.Faces, g.fps.Fps())
-	g.win.SetTitle(title)
+	g.window.SetTitle(title)
 }
 
-func (g *Game) syncPlayerLoop() {
+func (g *Application) syncPlayerLoop() {
 	tick := time.NewTicker(time.Second / 10)
 	for range tick.C {
-		ClientUpdatePlayerState(g.camera.State())
+		rpc.ClientUpdatePlayerState(g.Ctx, g.camera.State())
 	}
 }
 
-func (g *Game) Update() {
+func (g *Application) Update() {
 	mainthread.Call(func() {
 		var dt float64
 		now := glfw.GetTime()
@@ -271,14 +307,14 @@ func (g *Game) Update() {
 		gl.ClearColor(0.57, 0.71, 0.77, 1)
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
-		g.blockRender.Render()
-		g.lineRender.Render()
-		g.playerRender.Draw()
+		g.chunkRenderer.Render()
+		g.playerRenderer.Render()
+		g.lineRenderer.Render()
 
 		g.renderStat()
 
-		g.win.SwapBuffers()
+		g.window.SwapBuffers()
 		glfw.PollEvents()
-		g.closed = g.win.ShouldClose()
+		g.closed = g.window.ShouldClose()
 	})
 }

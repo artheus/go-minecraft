@@ -2,33 +2,23 @@ package chunk
 
 import (
 	. "github.com/artheus/go-minecraft/math32"
-	. "github.com/artheus/go-minecraft/types"
-	"github.com/go-gl/mathgl/mgl32"
 	"log"
 	"sync"
 )
 
-func NearBlock(pos mgl32.Vec3) Vec3 {
-	return Vec3{
-		X: Round(pos.X()),
-		Y: Round(pos.Y()),
-		Z: Round(pos.Z()),
-	}
-}
-
 type Chunk struct {
-	id     ChunkID
+	id     Vec3
 	blocks sync.Map // map[Vec3]int
 }
 
-func NewChunk(id ChunkID) *Chunk {
+func NewChunk(id Vec3) *Chunk {
 	c := &Chunk{
 		id: id,
 	}
 	return c
 }
 
-func (c *Chunk) ID() ChunkID {
+func (c *Chunk) ID() Vec3 {
 	return c.id
 }
 

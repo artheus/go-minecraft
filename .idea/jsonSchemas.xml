@@ -13,7 +13,31 @@
                 <list>
                   <Item>
                     <option name="pattern" value="true" />
-                    <option name="path" value="assets/*/blockstates/*.json" />
+                    <option name="path" value="assets/*/blocks/*.json" />
+                    <option name="mappingKind" value="Pattern" />
+                  </Item>
+                  <Item>
+                    <option name="pattern" value="true" />
+                    <option name="path" value="assets/*/blockstate/*.json" />
+                    <option name="mappingKind" value="Pattern" />
+                  </Item>
+                </list>
+              </option>
+            </SchemaInfo>
+          </value>
+        </entry>
+        <entry key="Model">
+          <value>
+            <SchemaInfo>
+              <option name="name" value="Model" />
+              <option name="relativePathToSchema" value="schemas/model.json" />
+              <option name="schemaVersion" value="JSON Schema version 7" />
+              <option name="applicationDefined" value="true" />
+              <option name="patterns">
+                <list>
+                  <Item>
+                    <option name="pattern" value="true" />
+                    <option name="path" value="assets/*/models/*/*.json" />
                     <option name="mappingKind" value="Pattern" />
                   </Item>
                 </list>

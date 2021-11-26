@@ -1,14 +1,13 @@
-package core
+package store
 
 import (
+	"github.com/artheus/go-minecraft/core/types"
 	. "github.com/artheus/go-minecraft/math32"
-	"github.com/artheus/go-minecraft/types"
 
 	"bytes"
 	"encoding/binary"
 	"errors"
 	"flag"
-	"fmt"
 	"log"
 
 	"github.com/boltdb/bolt"
@@ -23,7 +22,7 @@ var (
 	chunkBucket  = []byte("chunk")
 	cameraBucket = []byte("camera")
 
-	store *Store
+	Storage *Store
 )
 
 func InitStore() error {
@@ -31,14 +30,14 @@ func InitStore() error {
 	if *dbpath != "" {
 		path = *dbpath
 	}
-	if *serverAddr != "" {
-		path = fmt.Sprintf("cache_%s.db", *serverAddr)
-	}
+	//if *core.serverAddr != "" {
+	//	path = fmt.Sprintf("cache_%s.db", *core.serverAddr)
+	//}
 	if path == "" {
 		return errors.New("empty db path")
 	}
 	var err error
-	store, err = NewStore(path)
+	Storage, err = NewStore(path)
 	return err
 }
 
@@ -83,7 +82,7 @@ func (s *Store) UpdateBlock(id Vec3, w int) error {
 	})
 }
 
-func (s *Store) UpdatePlayerState(state PlayerState) error {
+func (s *Store) UpdatePlayerState(state types.PlayerState) error {
 	return s.db.Update(func(tx *bolt.Tx) error {
 		bkt := tx.Bucket(cameraBucket)
 		buf := new(bytes.Buffer)
@@ -93,8 +92,8 @@ func (s *Store) UpdatePlayerState(state PlayerState) error {
 	})
 }
 
-func (s *Store) GetPlayerState() PlayerState {
-	var state PlayerState
+func (s *Store) GetPlayerState() types.PlayerState {
+	var state types.PlayerState
 	state.Y = 16
 	s.db.View(func(tx *bolt.Tx) error {
 		bkt := tx.Bucket(cameraBucket)
@@ -109,7 +108,7 @@ func (s *Store) GetPlayerState() PlayerState {
 	return state
 }
 
-func (s *Store) RangeBlocks(id types.ChunkID, f func(bid Vec3, w int)) error {
+func (s *Store) RangeBlocks(id Vec3, f func(bid Vec3, w int)) error {
 	return s.db.View(func(tx *bolt.Tx) error {
 		bkt := tx.Bucket(blockBucket)
 		startkey := encodeBlockDbKey(id, Vec3{0, 0, 0})
@@ -126,7 +125,7 @@ func (s *Store) RangeBlocks(id types.ChunkID, f func(bid Vec3, w int)) error {
 	})
 }
 
-func (s *Store) UpdateChunkVersion(id types.ChunkID, version string) error {
+func (s *Store) UpdateChunkVersion(id Vec3, version string) error {
 	return s.db.Update(func(tx *bolt.Tx) error {
 		bkt := tx.Bucket(chunkBucket)
 		key := encodeChunkID(id)
@@ -134,7 +133,7 @@ func (s *Store) UpdateChunkVersion(id types.ChunkID, version string) error {
 	})
 }
 
-func (s *Store) GetChunkVersion(id types.ChunkID) string {
+func (s *Store) GetChunkVersion(id Vec3) string {
 	var version string
 	s.db.View(func(tx *bolt.Tx) error {
 		bkt := tx.Bucket(chunkBucket)
@@ -159,20 +158,20 @@ func encodeVec3(v Vec3) []byte {
 	return buf.Bytes()
 }
 
-func encodeChunkID(v types.ChunkID) []byte {
+func encodeChunkID(v Vec3) []byte {
 	buf := new(bytes.Buffer)
 	binary.Write(buf, binary.LittleEndian, [...]int32{int32(v.X), int32(v.Y), int32(v.Z)})
 	return buf.Bytes()
 }
 
-func encodeBlockDbKey(cid types.ChunkID, bid Vec3) []byte {
+func encodeBlockDbKey(cid Vec3, bid Vec3) []byte {
 	buf := new(bytes.Buffer)
 	binary.Write(buf, binary.LittleEndian, [...]int32{int32(cid.X), int32(cid.Z)})
 	binary.Write(buf, binary.LittleEndian, [...]int32{int32(bid.X), int32(bid.Y), int32(bid.Z)})
 	return buf.Bytes()
 }
 
-func decodeBlockDbKey(b []byte) (types.ChunkID, Vec3) {
+func decodeBlockDbKey(b []byte) (Vec3, Vec3) {
 	if len(b) != 4*5 {
 		log.Panicf("bad db key length:%d", len(b))
 	}
@@ -180,7 +179,7 @@ func decodeBlockDbKey(b []byte) (types.ChunkID, Vec3) {
 	var arr [5]int32
 	binary.Read(buf, binary.LittleEndian, &arr)
 
-	cid := types.ChunkID{X: int(arr[0]), Z: int(arr[1])}
+	cid := Vec3{X: float32(arr[0]), Z: float32(arr[1])}
 	bid := Vec3{X: float32(arr[2]), Y: float32(arr[3]), Z: float32(arr[4])}
 	if bid.ChunkID() != cid {
 		log.Panicf("bad db key: cid:%v, bid:%v", cid, bid)

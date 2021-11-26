@@ -3,7 +3,7 @@ package chunk
 import (
 	"github.com/artheus/go-minecraft/core/block"
 	"github.com/artheus/go-minecraft/core/texture"
-	"github.com/artheus/go-minecraft/core/thread"
+	"github.com/artheus/go-minecraft/core/types"
 	. "github.com/artheus/go-minecraft/math32"
 	"github.com/faiface/glhf"
 	"image"
@@ -14,14 +14,14 @@ import (
 type Thread struct {
 	shader *glhf.Shader
 	texture *glhf.Texture
-	chunks sync.Map // map[types.ChunkID]*Chunk
+	chunks sync.Map // map[Vec3]*Chunk
 }
 
 const (
 	texturePath = "texture.png"
 )
 
-func (t *Thread) Init() thread.InitFunc {
+func (t *Thread) Init() types.InitFunc {
 	return func() (err error) {
 		var img []uint8
 		var rect image.Rectangle
@@ -49,7 +49,7 @@ func (t *Thread) Init() thread.InitFunc {
 	}
 }
 
-func (t *Thread) Tick() thread.TickFunc {
+func (t *Thread) Tick() types.TickFunc {
 	return func() {
 		// Render chunks
 		t.chunks.Range(func(id, chunk interface{}) bool {

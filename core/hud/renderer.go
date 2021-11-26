@@ -1,8 +1,8 @@
-package core
+package hud
 
 import (
 	"github.com/artheus/go-minecraft/core/block"
-	"github.com/artheus/go-minecraft/core/hud"
+	"github.com/artheus/go-minecraft/core/ctx"
 	. "github.com/artheus/go-minecraft/math32"
 	"github.com/faiface/glhf"
 	"github.com/faiface/mainthread"
@@ -11,15 +11,18 @@ import (
 
 // LineRenderer is in charge of rendering Lines as HUD on screen
 type LineRenderer struct {
+	ctx       *ctx.Context
 	shader    *glhf.Shader
-	cross     *hud.Lines
-	wireFrame *hud.Lines
+	cross     *Lines
+	wireFrame *Lines
 	lastBlock Vec3
 }
 
 // NewLineRenderer creates a new instance of LineRenderer
-func NewLineRenderer() (*LineRenderer, error) {
-	r := &LineRenderer{}
+func NewLineRenderer(ctx *ctx.Context) (*LineRenderer, error) {
+	r := &LineRenderer{
+		ctx: ctx,
+	}
 	var err error
 	mainthread.Call(func() {
 		r.shader, err = glhf.NewShader(glhf.AttrFormat{
@@ -47,7 +50,7 @@ const (
 
 // renderCrosshairs will render the HUD crosshairs to screen
 func (r *LineRenderer) renderCrosshairs() {
-	width, height := game.win.GetFramebufferSize()
+	width, height := r.ctx.Game().Window().GetFramebufferSize()
 	project := mgl32.Ortho2D(0, float32(width), float32(height), 0)
 	model := mgl32.Translate3D(float32(width/2), float32(height/2), 0)
 	model = model.Mul4(mgl32.Scale3D(float32(height/crossDivider), float32(height/crossDivider), 0))
@@ -58,7 +61,7 @@ func (r *LineRenderer) renderCrosshairs() {
 // pointed at by player's crosshairs
 func (r *LineRenderer) renderWireFrame(mat mgl32.Mat4) {
 	var vertices []float32
-	b, _ := game.world.HitTest(game.camera.Pos(), game.camera.Front())
+	b, _ := r.ctx.Game().World().HitTest(r.ctx.Game().Camera().Pos(), r.ctx.Game().Camera().Front())
 	if b == nil {
 		return
 	}
@@ -72,14 +75,14 @@ func (r *LineRenderer) renderWireFrame(mat mgl32.Mat4) {
 
 	id := *b
 	show := block.Sides(
-		IsTransparent(game.world.Block(id.Left())),
-		IsTransparent(game.world.Block(id.Right())),
-		IsTransparent(game.world.Block(id.Up())),
-		IsTransparent(game.world.Block(id.Down())),
-		IsTransparent(game.world.Block(id.Front())),
-		IsTransparent(game.world.Block(id.Back())),
+		r.ctx.Game().World().IsTransparent(r.ctx.Game().World().Block(id.Left())),
+		r.ctx.Game().World().IsTransparent(r.ctx.Game().World().Block(id.Right())),
+		r.ctx.Game().World().IsTransparent(r.ctx.Game().World().Block(id.Up())),
+		r.ctx.Game().World().IsTransparent(r.ctx.Game().World().Block(id.Down())),
+		r.ctx.Game().World().IsTransparent(r.ctx.Game().World().Block(id.Front())),
+		r.ctx.Game().World().IsTransparent(r.ctx.Game().World().Block(id.Back())),
 	)
-	vertices = hud.WireFrameData(vertices, show)
+	vertices = WireFrameData(vertices, show)
 	if len(vertices) == 0 {
 		return
 	}
@@ -88,15 +91,15 @@ func (r *LineRenderer) renderWireFrame(mat mgl32.Mat4) {
 		r.wireFrame.Release()
 	}
 
-	r.wireFrame = hud.NewLines(r.shader, vertices)
+	r.wireFrame = NewLines(r.shader, vertices)
 	r.wireFrame.Render(mat)
 }
 
 // Render lines (crosshairs and wireframe) to screen
 func (r *LineRenderer) Render() {
-	width, height := game.win.GetSize()
+	width, height := r.ctx.Game().Window().GetSize()
 	projection := mgl32.Perspective(Radian(45), float32(width)/float32(height), 0.01, ChunkWidth)
-	camera := game.camera.Matrix()
+	camera := r.ctx.Game().Camera().Matrix()
 	mat := projection.Mul4(camera)
 
 	r.shader.Begin()
@@ -106,8 +109,8 @@ func (r *LineRenderer) Render() {
 }
 
 // makeCross creates the HUD crosshairs vao
-func makeCross(shader *glhf.Shader) *hud.Lines {
-	return hud.NewLines(shader, []float32{
+func makeCross(shader *glhf.Shader) *Lines {
+	return NewLines(shader, []float32{
 		-0.5, 0, 0, 0.5, 0, 0,
 		0, -0.5, 0, 0, 0.5, 0,
 	})

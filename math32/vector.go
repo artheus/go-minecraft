@@ -1,7 +1,5 @@
 package math32
 
-import "github.com/artheus/go-minecraft/types"
-
 const (
 	ChunkWidth = 32
 )
@@ -38,10 +36,10 @@ func (v Vec3) Back() Vec3 {
 	return Vec3{v.X, v.Y, v.Z - 1}
 }
 
-func (v Vec3) ChunkID() types.ChunkID {
-	return types.ChunkID{
-		X: int(Floor(v.X / ChunkWidth)),
-		Z: int(Floor(v.Z / ChunkWidth)),
+func (v Vec3) ChunkID() Vec3 {
+	return Vec3{
+		X: Floor(v.X / ChunkWidth),
+		Z: Floor(v.Z / ChunkWidth),
 	}
 }
 

@@ -1,0 +1,157 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "https://raw.githubusercontent.com/artheus/go-minecraft/master/schemas/blockstate.json",
+  "type": "object",
+  "title": "Model schema",
+  "description": "Root schema for minecraft Model descriptions",
+  "definitions": {
+    "model:face_attr": {
+      "type": "object",
+      "properties": {
+        "texture": {
+          "type": "string"
+        },
+        "cullface": {
+          "type": "string",
+          "enum": [
+            "up",
+            "down",
+            "north",
+            "south",
+            "west",
+            "east"
+          ]
+        }
+      }
+    },
+    "model:3d_coord_array": {
+      "type": "array",
+      "minLength": 3,
+      "maxLength": 3,
+      "items": {
+        "type": "number"
+      }
+    },
+    "model:view_attributes": {
+      "$id": "#/definitions/model:view_attributes",
+      "type": "object",
+      "title": "View Attributes",
+      "description": "Attributes for viewport rendering of model",
+      "properties": {
+        "rotation": {
+          "$ref": "#/definitions/model:3d_coord_array"
+        },
+        "translation": {
+          "$ref": "#/definitions/model:3d_coord_array"
+        },
+        "scale": {
+          "$ref": "#/definitions/model:3d_coord_array"
+        }
+      }
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "textures": {
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "parent": {
+      "$id": "#/properties/parent",
+      "type": "string",
+      "title": "Parent URI",
+      "description": "URI to parent model definition"
+    },
+    "elements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "$ref": "#/definitions/model:3d_coord_array"
+          },
+          "to": {
+            "$ref": "#/definitions/model:3d_coord_array"
+          },
+          "faces": {
+            "type": "object",
+            "properties": {
+              "down": {
+                "$ref": "#/definitions/model:face_attr"
+              },
+              "up": {
+                "$ref": "#/definitions/model:face_attr"
+              },
+              "north": {
+                "$ref": "#/definitions/model:face_attr"
+              },
+              "south": {
+                "$ref": "#/definitions/model:face_attr"
+              },
+              "west": {
+                "$ref": "#/definitions/model:face_attr"
+              },
+              "east": {
+                "$ref": "#/definitions/model:face_attr"
+              }
+            }
+          }
+        }
+      }
+    },
+    "gui_light": {
+      "$id": "#/properties/gui_light",
+      "type": "string",
+      "title": "GUI Light",
+      "description": "What lighting to apply in GUI view"
+    },
+    "display": {
+      "$id": "#/properties/display",
+      "type": "object",
+      "title": "Block display",
+      "description": "Settings for how to display block",
+      "properties": {
+        "gui": {
+          "$id": "#/properties/display/gui",
+          "type": "object",
+          "title": "View in GUI",
+          "$ref": "#/definitions/model:view_attributes"
+        },
+        "ground": {
+          "$id": "#/properties/display/ground",
+          "type": "object",
+          "title": "View on ground",
+          "$ref": "#/definitions/model:view_attributes"
+        },
+        "fixed": {
+          "$id": "#/properties/display/fixed",
+          "type": "object",
+          "title": "Fixed view",
+          "$ref": "#/definitions/model:view_attributes"
+        },
+        "thirdperson_righthand": {
+          "$id": "#/properties/display/thirdperson_righthand",
+          "type": "object",
+          "title": "third-person right hand",
+          "description": "View in third-person's right hand",
+          "$ref": "#/definitions/model:view_attributes"
+        },
+        "firstperson_righthand": {
+          "$id": "#/properties/display/firstperson_righthand",
+          "type": "object",
+          "title": "First-person right hand",
+          "description": "View in first-person's right hand",
+          "$ref": "#/definitions/model:view_attributes"
+        },
+        "firstperson_lefthand": {
+          "$id": "#/properties/display/firstperson_lefthand",
+          "type": "object",
+          "title": "First-person left hand",
+          "description": "View in first-person's left hand",
+          "$ref": "#/definitions/model:view_attributes"
+        }
+      }
+    }
+  }
+}

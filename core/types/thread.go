@@ -1,4 +1,4 @@
-package thread
+package types
 
 type InitFunc func() (err error)
 type TickFunc func()

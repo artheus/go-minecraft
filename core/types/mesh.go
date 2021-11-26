@@ -1,7 +1,7 @@
-package mesh
+package types
 
 import (
-	"github.com/artheus/go-minecraft/types"
+	"github.com/artheus/go-minecraft/math32"
 	"github.com/faiface/glhf"
 	"github.com/go-gl/gl/v3.3-core/gl"
 )
@@ -9,16 +9,19 @@ import (
 type Mesh struct {
 	vao, vbo uint32
 	faces    int
-	Id       types.ChunkID
+	Id       math32.Vec3
 	Dirty    bool
 }
 
 func NewMesh(shader *glhf.Shader, data []float32) *Mesh {
 	m := new(Mesh)
+
 	m.faces = len(data) / (shader.VertexFormat().Size() / 4) / 6
+
 	if m.faces == 0 {
 		return m
 	}
+
 	gl.GenVertexArrays(1, &m.vao)
 	gl.GenBuffers(1, &m.vbo)
 	gl.BindVertexArray(m.vao)

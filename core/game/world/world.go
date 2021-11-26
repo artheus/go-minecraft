@@ -1,8 +1,11 @@
-package core
+package world
 
 import (
 	"github.com/artheus/go-minecraft/core/chunk"
-	"github.com/artheus/go-minecraft/types"
+	"github.com/artheus/go-minecraft/core/ctx"
+	"github.com/artheus/go-minecraft/core/game/rpc"
+	"github.com/artheus/go-minecraft/core/game/store"
+	"github.com/artheus/go-minecraft/core/types"
 	"log"
 	"sync"
 
@@ -15,17 +18,19 @@ import (
 type World struct {
 	mutex  sync.Mutex
 	chunks *lru.Cache // map[Vec3]*Chunk
+	ctx *ctx.Context
 }
 
-func NewWorld() *World {
-	m := (*renderRadius) * (*renderRadius) * 4
+func NewWorld(ctx *ctx.Context) *World {
+	m := (*chunk.RenderRadius) * (*chunk.RenderRadius) * 4
 	chunks, _ := lru.New(m)
 	return &World{
 		chunks: chunks,
+		ctx: ctx,
 	}
 }
 
-func (w *World) loadChunk(id types.ChunkID) (*chunk.Chunk, bool) {
+func (w *World) loadChunk(id Vec3) (*chunk.Chunk, bool) {
 	c, ok := w.chunks.Get(id)
 	if !ok {
 		return nil, false
@@ -33,7 +38,7 @@ func (w *World) loadChunk(id types.ChunkID) (*chunk.Chunk, bool) {
 	return c.(*chunk.Chunk), true
 }
 
-func (w *World) storeChunk(id types.ChunkID, chunk *chunk.Chunk) {
+func (w *World) storeChunk(id Vec3, chunk *chunk.Chunk) {
 	w.chunks.Add(id, chunk)
 }
 
@@ -51,24 +56,24 @@ func (w *World) Collide(pos mgl32.Vec3) (mgl32.Vec3, bool) {
 
 	stop := false
 	for _, b := range []Vec3{foot, head} {
-		if IsObstacle(w.Block(b.Left())) && x < nx && nx-x > pad {
+		if w.IsObstacle(w.Block(b.Left())) && x < nx && nx-x > pad {
 			x = nx - pad
 		}
-		if IsObstacle(w.Block(b.Right())) && x > nx && x-nx > pad {
+		if w.IsObstacle(w.Block(b.Right())) && x > nx && x-nx > pad {
 			x = nx + pad
 		}
-		if IsObstacle(w.Block(b.Down())) && y < ny && ny-y > pad {
+		if w.IsObstacle(w.Block(b.Down())) && y < ny && ny-y > pad {
 			y = ny - pad
 			stop = true
 		}
-		if IsObstacle(w.Block(b.Up())) && y > ny && y-ny > pad {
+		if w.IsObstacle(w.Block(b.Up())) && y > ny && y-ny > pad {
 			y = ny + pad
 			stop = true
 		}
-		if IsObstacle(w.Block(b.Back())) && z < nz && nz-z > pad {
+		if w.IsObstacle(w.Block(b.Back())) && z < nz && nz-z > pad {
 			z = nz - pad
 		}
-		if IsObstacle(w.Block(b.Front())) && z > nz && z-nz > pad {
+		if w.IsObstacle(w.Block(b.Front())) && z > nz && z-nz > pad {
 			z = nz + pad
 		}
 	}
@@ -103,7 +108,7 @@ func (w *World) Block(id Vec3) int {
 	return chunk.Block(id)
 }
 
-func (w *World) BlockChunk(block Vec3) *chunk.Chunk {
+func (w *World) BlockChunk(block Vec3) types.IChunk {
 	cid := block.ChunkID()
 	chunk, ok := w.loadChunk(cid)
 	if !ok {
@@ -121,18 +126,18 @@ func (w *World) UpdateBlock(id Vec3, tp int) {
 			chunk.Del(id)
 		}
 	}
-	store.UpdateBlock(id, tp)
+	store.Storage.UpdateBlock(id, tp)
 }
 
-func IsPlant(tp int) bool {
+func (w *World) IsPlant(tp int) bool {
 	if tp >= 17 && tp <= 31 {
 		return true
 	}
 	return false
 }
 
-func IsTransparent(tp int) bool {
-	if IsPlant(tp) {
+func (w *World) IsTransparent(tp int) bool {
+	if w.IsPlant(tp) {
 		return true
 	}
 	switch tp {
@@ -143,8 +148,8 @@ func IsTransparent(tp int) bool {
 	}
 }
 
-func IsObstacle(tp int) bool {
-	if IsPlant(tp) {
+func (w *World) IsObstacle(tp int) bool {
+	if w.IsPlant(tp) {
 		return false
 	}
 	switch tp {
@@ -162,7 +167,7 @@ func (w *World) HasBlock(id Vec3) bool {
 	return tp != -1 && tp != 0
 }
 
-func (w *World) Chunk(id types.ChunkID) *chunk.Chunk {
+func (w *World) Chunk(id Vec3) types.IChunk {
 	p, ok := w.loadChunk(id)
 	if ok {
 		return p
@@ -172,7 +177,7 @@ func (w *World) Chunk(id types.ChunkID) *chunk.Chunk {
 	for block, tp := range blocks {
 		chunk.Add(block, tp)
 	}
-	err := store.RangeBlocks(id, func(bid Vec3, w int) {
+	err := store.Storage.RangeBlocks(id, func(bid Vec3, w int) {
 		if w == 0 {
 			chunk.Del(bid)
 			return
@@ -183,23 +188,23 @@ func (w *World) Chunk(id types.ChunkID) *chunk.Chunk {
 		log.Printf("fetch chunk(%v) from db error:%s", id, err)
 		return nil
 	}
-	ClientFetchChunk(id, func(bid Vec3, w int) {
+	rpc.ClientFetchChunk(id, func(bid Vec3, w int) {
 		if w == 0 {
 			chunk.Del(bid)
 			return
 		}
 		chunk.Add(bid, w)
-		store.UpdateBlock(bid, w)
+		store.Storage.UpdateBlock(bid, w)
 	})
 	w.storeChunk(id, chunk)
 	return chunk
 }
 
-func (w *World) Chunks(ids []types.ChunkID) []*chunk.Chunk {
-	ch := make(chan *chunk.Chunk)
-	var chunks []*chunk.Chunk
+func (w *World) Chunks(ids []Vec3) []types.IChunk {
+	ch := make(chan types.IChunk)
+	var chunks []types.IChunk
 	for _, id := range ids {
-		go func(id types.ChunkID) {
+		go func(id Vec3) {
 			ch <- w.Chunk(id)
 		}(id)
 	}
@@ -212,7 +217,7 @@ func (w *World) Chunks(ids []types.ChunkID) []*chunk.Chunk {
 	return chunks
 }
 
-func makeChunkMap(cid types.ChunkID) map[Vec3]int {
+func makeChunkMap(cid Vec3) map[Vec3]int {
 	const (
 		grassBlock = 1
 		sandBlock  = 2
@@ -224,7 +229,7 @@ func makeChunkMap(cid types.ChunkID) map[Vec3]int {
 	p, q := cid.X, cid.Z
 	for dx := 0; dx < ChunkWidth; dx++ {
 		for dz := 0; dz < ChunkWidth; dz++ {
-			x, z := p*ChunkWidth+dx, q*ChunkWidth+dz
+			x, z := int(p)*ChunkWidth+dx, int(q)*ChunkWidth+dz
 			f := Noise2(float32(x)*0.01, float32(z)*0.01, 4, 0.5, 2)
 			g := Noise2(float32(-x)*0.01, float32(-z)*0.01, 2, 0.9, 2)
 			mh := int(g*32 + 16)

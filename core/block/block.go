@@ -1,11 +1,11 @@
 package block
 
 import (
-	"github.com/artheus/go-minecraft/core/mesh"
+	"github.com/artheus/go-minecraft/core/types"
 )
 
 type Block struct {
-	mesh *mesh.Mesh
+	mesh *types.Mesh
 
 	visible bool
 }
