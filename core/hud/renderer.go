@@ -3,7 +3,7 @@ package hud
 import (
 	"github.com/artheus/go-minecraft/core/block"
 	"github.com/artheus/go-minecraft/core/ctx"
-	. "github.com/artheus/go-minecraft/math32"
+	. "github.com/artheus/go-minecraft/math/f32"
 	"github.com/faiface/glhf"
 	"github.com/faiface/mainthread"
 	"github.com/go-gl/mathgl/mgl32"
@@ -75,12 +75,12 @@ func (r *LineRenderer) renderWireFrame(mat mgl32.Mat4) {
 
 	id := *b
 	show := block.Sides(
-		r.ctx.Game().World().IsTransparent(r.ctx.Game().World().Block(id.Left())),
-		r.ctx.Game().World().IsTransparent(r.ctx.Game().World().Block(id.Right())),
-		r.ctx.Game().World().IsTransparent(r.ctx.Game().World().Block(id.Up())),
-		r.ctx.Game().World().IsTransparent(r.ctx.Game().World().Block(id.Down())),
-		r.ctx.Game().World().IsTransparent(r.ctx.Game().World().Block(id.Front())),
-		r.ctx.Game().World().IsTransparent(r.ctx.Game().World().Block(id.Back())),
+		!r.ctx.Game().World().Block(id.Left()).Visible || r.ctx.Game().World().Block(id.Left()).Transparent,
+		!r.ctx.Game().World().Block(id.Right()).Visible || r.ctx.Game().World().Block(id.Right()).Transparent,
+		!r.ctx.Game().World().Block(id.Up()).Visible || r.ctx.Game().World().Block(id.Up()).Transparent,
+		!r.ctx.Game().World().Block(id.Down()).Visible || r.ctx.Game().World().Block(id.Down()).Transparent,
+		!r.ctx.Game().World().Block(id.Front()).Visible || r.ctx.Game().World().Block(id.Front()).Transparent,
+		!r.ctx.Game().World().Block(id.Back()).Visible || r.ctx.Game().World().Block(id.Back()).Transparent,
 	)
 	vertices = WireFrameData(vertices, show)
 	if len(vertices) == 0 {

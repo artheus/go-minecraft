@@ -6,7 +6,7 @@ import (
 	"github.com/artheus/go-minecraft/core/item"
 	"github.com/artheus/go-minecraft/core/texture"
 	. "github.com/artheus/go-minecraft/core/types"
-	. "github.com/artheus/go-minecraft/math32"
+	. "github.com/artheus/go-minecraft/math/f32"
 	"log"
 
 	"github.com/faiface/glhf"
@@ -59,7 +59,7 @@ func (p *Player) Draw(mat mgl32.Mat4) {
 	mat = mat.Mul4(p.computeMat())
 
 	p.shader.SetUniformAttr(0, mat)
-	p.mesh.Draw()
+	p.mesh.Render()
 }
 
 func (p *Player) Release() {
@@ -138,7 +138,7 @@ func (r *PlayerRenderer) UpdateOrAdd(id int32, s proto.PlayerState) {
 				0,
 				0,
 			},
-			item.Tex.Texture(64),
+			item.Tex.Texture("core:player"),
 		)
 		var mesh *Mesh
 		mainthread.Call(func() {

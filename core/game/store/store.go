@@ -1,8 +1,9 @@
 package store
 
 import (
+	"github.com/artheus/go-minecraft/core/block"
 	"github.com/artheus/go-minecraft/core/types"
-	. "github.com/artheus/go-minecraft/math32"
+	. "github.com/artheus/go-minecraft/math/f32"
 
 	"bytes"
 	"encoding/binary"
@@ -71,7 +72,7 @@ func NewStore(p string) (*Store, error) {
 	}, nil
 }
 
-func (s *Store) UpdateBlock(id Vec3, w int) error {
+func (s *Store) UpdateBlock(id Vec3, w *block.Block) error {
 	return s.db.Update(func(tx *bolt.Tx) error {
 		log.Printf("put %v -> %d", id, w)
 		bkt := tx.Bucket(blockBucket)
@@ -108,7 +109,7 @@ func (s *Store) GetPlayerState() types.PlayerState {
 	return state
 }
 
-func (s *Store) RangeBlocks(id Vec3, f func(bid Vec3, w int)) error {
+func (s *Store) RangeBlocks(id Vec3, f func(bid Vec3, w *block.Block)) error {
 	return s.db.View(func(tx *bolt.Tx) error {
 		bkt := tx.Bucket(blockBucket)
 		startkey := encodeBlockDbKey(id, Vec3{0, 0, 0})
@@ -119,7 +120,7 @@ func (s *Store) RangeBlocks(id Vec3, f func(bid Vec3, w int)) error {
 				break
 			}
 			w := decodeBlockDbValue(v)
-			f(bid, w)
+			f(bid, block.GetBlock(w))
 		}
 		return nil
 	})
@@ -187,15 +188,10 @@ func decodeBlockDbKey(b []byte) (Vec3, Vec3) {
 	return cid, bid
 }
 
-func encodeBlockDbValue(w int) []byte {
-	value := make([]byte, 4)
-	binary.LittleEndian.PutUint32(value, uint32(w))
-	return value
+func encodeBlockDbValue(w *block.Block) []byte {
+	return []byte(w.ID)
 }
 
-func decodeBlockDbValue(b []byte) int {
-	if len(b) != 4 {
-		log.Panicf("bad db value length:%d", len(b))
-	}
-	return int(binary.LittleEndian.Uint32(b))
+func decodeBlockDbValue(b []byte) string {
+	return string(b)
 }

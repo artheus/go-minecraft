@@ -2,7 +2,7 @@ package block
 
 import (
 	"github.com/artheus/go-minecraft/core/texture"
-	. "github.com/artheus/go-minecraft/math32"
+	. "github.com/artheus/go-minecraft/math/f32"
 )
 
 func BlockData(vertices []float32, show Side, block Vec3, tex *texture.BlockTexture) []float32 {

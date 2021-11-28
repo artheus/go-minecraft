@@ -35,7 +35,10 @@ func Run() {
 		log.Fatal(err)
 	}
 
-	gameApp.Init(appCtx)
+	err = gameApp.Init(appCtx)
+	if err != nil {
+		log.Panic(err)
+	}
 
 	err = rpc.InitClient(appCtx)
 	if err != nil {

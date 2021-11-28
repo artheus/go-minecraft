@@ -1,10 +1,10 @@
 package chunk
 
 import (
-	"github.com/artheus/go-minecraft/core/block"
+	types2 "github.com/artheus/go-minecraft/core/block"
 	"github.com/artheus/go-minecraft/core/texture"
 	"github.com/artheus/go-minecraft/core/types"
-	. "github.com/artheus/go-minecraft/math32"
+	. "github.com/artheus/go-minecraft/math/f32"
 	"github.com/faiface/glhf"
 	"image"
 	"sync"
@@ -14,7 +14,7 @@ import (
 type Thread struct {
 	shader *glhf.Shader
 	texture *glhf.Texture
-	chunks sync.Map // map[Vec3]*Chunk
+	chunks sync.Map // map[Vec3]*ChunkOld
 }
 
 const (
@@ -53,13 +53,13 @@ func (t *Thread) Tick() types.TickFunc {
 	return func() {
 		// Render chunks
 		t.chunks.Range(func(id, chunk interface{}) bool {
-			c := chunk.(*Chunk)
+			/*c := chunk.(*Chunk)
 
 			// Render blocks in chunk
 			c.blocks.Range(func(pos, b interface{}) bool {
-				t.renderBlock(pos.(Vec3), b.(*block.Block))
+				t.renderBlock(pos.(Vec3), b.(*types2.Block))
 				return true
-			})
+			})*/
 
 			return true
 		})
@@ -67,7 +67,7 @@ func (t *Thread) Tick() types.TickFunc {
 }
 
 // renderBlock should render visible blocks of a chunk
-func (t *Thread) renderBlock(pos Vec3, b *block.Block) {
+func (t *Thread) renderBlock(pos Vec3, b *types2.Block) {
 	t.shader.Begin()
 	t.texture.Begin()
 	defer t.shader.End()

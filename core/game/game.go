@@ -2,22 +2,21 @@ package game
 
 import (
 	"fmt"
+	"github.com/artheus/go-minecraft/core/block"
 	"github.com/artheus/go-minecraft/core/chunk"
 	"github.com/artheus/go-minecraft/core/ctx"
 	"github.com/artheus/go-minecraft/core/game/rpc"
 	"github.com/artheus/go-minecraft/core/game/world"
 	"github.com/artheus/go-minecraft/core/hud"
-	"github.com/artheus/go-minecraft/core/item"
 	"github.com/artheus/go-minecraft/core/player"
 	"github.com/artheus/go-minecraft/core/types"
+	. "github.com/artheus/go-minecraft/math/f32"
 	"github.com/faiface/mainthread"
 	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/go-gl/glfw/v3.2/glfw"
 	"github.com/go-gl/mathgl/mgl32"
 	"log"
 	"time"
-
-	. "github.com/artheus/go-minecraft/math32"
 )
 
 func InitGL(w, h int) *glfw.Window {
@@ -51,8 +50,8 @@ type Application struct {
 	Ctx    *ctx.Context
 	window *glfw.Window
 
-	camera *player.Camera
-	lx, ly float64
+	camera   *player.Camera
+	lx, ly   float64
 	vy       float32
 	prevtime float64
 
@@ -60,10 +59,11 @@ type Application struct {
 	chunkRenderer  *chunk.ChunkRenderer
 	playerRenderer *player.PlayerRenderer
 
-	world   *world.World
-	itemidx int
-	item    int
-	fps     hud.FPS
+	world    *world.World
+	itemidx  int
+	itemKeys []string
+	item     *block.Block
+	fps      hud.FPS
 
 	exclusiveMouse bool
 	closed         bool
@@ -72,7 +72,19 @@ type Application struct {
 func NewGame(w, h int) (game *Application, err error) {
 	game = new(Application)
 
-	game.item = item.AvailableItems[0]
+	block.InitRegister()
+
+	block.RangeBlocks(func(b *block.Block) bool {
+		if b.ID == block.AirID {
+			return true
+		}
+
+		game.itemKeys = append(game.itemKeys, b.ID)
+		return true
+	})
+
+	game.itemidx = 0
+	game.item = block.GetBlock(game.itemKeys[game.itemidx])
 
 	mainthread.Call(func() {
 		win := InitGL(w, h)
@@ -93,7 +105,7 @@ func (g *Application) Init(ctx *ctx.Context) (err error) {
 	}
 
 	mainthread.Call(func() {
-		g.chunkRenderer.UpdateItem(item.AvailableItems[0])
+		g.chunkRenderer.UpdateItem(g.itemKeys[g.itemidx])
 	})
 
 	g.lineRenderer, err = hud.NewLineRenderer(ctx)
@@ -168,7 +180,7 @@ func (g *Application) onMouseButtonCallback(_ *glfw.Window, button glfw.MouseBut
 	}
 	head := chunk.NearBlock(g.camera.Pos())
 	foot := head.Down()
-	block, prev := g.world.HitTest(g.camera.Pos(), g.camera.Front())
+	blockInWorld, prev := g.world.HitTest(g.camera.Pos(), g.camera.Front())
 	if button == glfw.MouseButton2 && action == glfw.Press {
 		if prev != nil && *prev != head && *prev != foot {
 			g.world.UpdateBlock(*prev, g.item)
@@ -177,10 +189,10 @@ func (g *Application) onMouseButtonCallback(_ *glfw.Window, button glfw.MouseBut
 		}
 	}
 	if button == glfw.MouseButton1 && action == glfw.Press {
-		if block != nil {
-			g.world.UpdateBlock(*block, 0)
-			g.dirtyBlock(*block)
-			go rpc.ClientUpdateBlock(*block, 0)
+		if blockInWorld != nil {
+			g.world.UpdateBlock(*blockInWorld, block.GetBlock(block.AirID))
+			g.dirtyBlock(*blockInWorld)
+			go rpc.ClientUpdateBlock(*blockInWorld, block.GetBlock(block.AirID))
 		}
 	}
 }
@@ -215,16 +227,16 @@ func (g *Application) onKeyCallback(win *glfw.Window, key glfw.Key, scancode int
 			g.vy = 8
 		}
 	case glfw.KeyE:
-		g.itemidx = (1 + g.itemidx) % len(item.AvailableItems)
-		g.item = item.AvailableItems[g.itemidx]
-		g.chunkRenderer.UpdateItem(g.item)
+		g.itemidx = (1 + g.itemidx) % len(g.itemKeys)
+		g.item = block.GetBlock(g.itemKeys[g.itemidx])
+		g.chunkRenderer.UpdateItem(g.itemKeys[g.itemidx])
 	case glfw.KeyR:
 		g.itemidx--
 		if g.itemidx < 0 {
-			g.itemidx = len(item.AvailableItems) - 1
+			g.itemidx = len(g.itemKeys) - 1
 		}
-		g.item = item.AvailableItems[g.itemidx]
-		g.chunkRenderer.UpdateItem(g.item)
+		g.item = block.GetBlock(g.itemKeys[g.itemidx])
+		g.chunkRenderer.UpdateItem(g.itemKeys[g.itemidx])
 	}
 }
 

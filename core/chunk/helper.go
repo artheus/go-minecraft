@@ -1,7 +1,7 @@
 package chunk
 
 import (
-	. "github.com/artheus/go-minecraft/math32"
+	. "github.com/artheus/go-minecraft/math/f32"
 	"github.com/go-gl/mathgl/mgl32"
 )
 

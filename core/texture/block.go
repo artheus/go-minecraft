@@ -5,4 +5,3 @@ type BlockTexture struct {
 	Up, Down    FaceTexture
 	Front, Back FaceTexture
 }
-

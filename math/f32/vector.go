@@ -1,4 +1,4 @@
-package math32
+package f32
 
 const (
 	ChunkWidth = 32

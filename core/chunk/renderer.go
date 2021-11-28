@@ -8,7 +8,7 @@ import (
 	"github.com/artheus/go-minecraft/core/item"
 	"github.com/artheus/go-minecraft/core/texture"
 	"github.com/artheus/go-minecraft/core/types"
-	. "github.com/artheus/go-minecraft/math32"
+	. "github.com/artheus/go-minecraft/math/f32"
 	"github.com/faiface/glhf"
 	"github.com/faiface/mainthread"
 	"github.com/go-gl/mathgl/mgl32"
@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	RenderRadius = flag.Int("r", 6, "render radius")
+	RenderRadius = flag.Int("r", 16, "render radius")
 )
 
 type ChunkRenderer struct {
@@ -83,22 +83,32 @@ func (r *ChunkRenderer) makeChunkMesh(c types.IChunk, onmainthread bool) *types.
 	facedata := r.facePool.Get().([]float32)
 	defer r.facePool.Put(facedata[:0])
 
-	c.RangeBlocks(func(id Vec3, w int) {
-		if w == 0 {
-			log.Panicf("unexpect 0 item types on %v", id)
+	c.RangeBlocks(func(pos Vec3, w *block.Block) {
+		if w == nil {
+			return
 		}
+		if w.ID == block.AirID {
+			return
+		}
+		if r.ctx.Game().World().Block(pos).ID == block.AirID {
+			return
+		}
+		if !r.ctx.Game().World().Block(pos).Visible {
+			return
+		}
+
 		show := block.Sides(
-			r.ctx.Game().World().IsTransparent(r.ctx.Game().World().Block(id.Left())),
-			r.ctx.Game().World().IsTransparent(r.ctx.Game().World().Block(id.Right())),
-			r.ctx.Game().World().IsTransparent(r.ctx.Game().World().Block(id.Up())),
-			r.ctx.Game().World().IsTransparent(r.ctx.Game().World().Block(id.Down())) && id.Y != 0,
-			r.ctx.Game().World().IsTransparent(r.ctx.Game().World().Block(id.Front())),
-			r.ctx.Game().World().IsTransparent(r.ctx.Game().World().Block(id.Back())),
+			r.ctx.Game().World().Block(pos.Left()).Transparent || !r.ctx.Game().World().Block(pos.Left()).Visible,
+			r.ctx.Game().World().Block(pos.Right()).Transparent || !r.ctx.Game().World().Block(pos.Right()).Visible,
+			r.ctx.Game().World().Block(pos.Up()).Transparent || !r.ctx.Game().World().Block(pos.Up()).Visible,
+			(pos.Y > 0 && r.ctx.Game().World().Block(pos.Down()).Transparent) || !r.ctx.Game().World().Block(pos.Down()).Visible,
+			r.ctx.Game().World().Block(pos.Front()).Transparent || !r.ctx.Game().World().Block(pos.Front()).Visible,
+			r.ctx.Game().World().Block(pos.Back()).Transparent || !r.ctx.Game().World().Block(pos.Back()).Visible,
 		)
-		if r.ctx.Game().World().IsPlant(r.ctx.Game().World().Block(id)) {
-			facedata = block.PlantData(facedata, show, id, item.Tex.Texture(w))
+		if r.ctx.Game().World().Block(pos).Plant {
+			facedata = block.PlantData(facedata, show, pos, item.Tex.Texture(w.ID))
 		} else {
-			facedata = block.BlockData(facedata, show, id, item.Tex.Texture(w))
+			facedata = block.BlockData(facedata, show, pos, item.Tex.Texture(w.ID))
 		}
 	})
 	n := len(facedata) / (r.shader.VertexFormat().Size() / 4)
@@ -116,13 +126,13 @@ func (r *ChunkRenderer) makeChunkMesh(c types.IChunk, onmainthread bool) *types.
 }
 
 // call on mainthread
-func (r *ChunkRenderer) UpdateItem(w int) {
+func (r *ChunkRenderer) UpdateItem(w string) {
 	vertices := r.facePool.Get().([]float32)
 	defer r.facePool.Put(vertices[:0])
 	texture := item.Tex.Texture(w)
 	show := block.Sides(true, true, true, true, true, true)
 	pos := Vec3{0, 0, 0}
-	if r.ctx.Game().World().IsPlant(w) {
+	if block.GetBlock(w).Plant {
 		vertices = block.PlantData(vertices, show, pos, texture)
 	} else {
 		vertices = block.BlockData(vertices, show, pos, texture)
@@ -396,7 +406,7 @@ func (r *ChunkRenderer) renderChunks() {
 		if isChunkVisiable(planes, id) {
 			r.state.RendingChunks++
 			r.state.Faces += mesh.Faces()
-			mesh.Draw()
+			mesh.Render()
 		}
 		return true
 	})
@@ -417,7 +427,7 @@ func (r *ChunkRenderer) renderItem() {
 	r.shader.SetUniformAttr(0, mat)
 	r.shader.SetUniformAttr(1, mgl32.Vec3{0, 0, 0})
 	r.shader.SetUniformAttr(2, float32(*RenderRadius)*ChunkWidth)
-	r.item.Draw()
+	r.item.Render()
 }
 
 // Render will render all chunks and HUD block items to screen

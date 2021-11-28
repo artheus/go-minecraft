@@ -1,7 +1,7 @@
 package types
 
 import (
-	"github.com/artheus/go-minecraft/math32"
+	"github.com/artheus/go-minecraft/math/f32"
 	"github.com/go-gl/glfw/v3.2/glfw"
 )
 
@@ -10,7 +10,7 @@ type IGameApplication interface {
 	Camera() ICamera
 	Window() *glfw.Window
 
-	CurrentBlockid() math32.Vec3
+	CurrentBlockid() f32.Vec3
 	ShouldClose() bool
 	Update()
 

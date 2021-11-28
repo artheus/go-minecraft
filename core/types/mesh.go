@@ -1,16 +1,16 @@
 package types
 
 import (
-	"github.com/artheus/go-minecraft/math32"
+	"github.com/artheus/go-minecraft/math/f32"
 	"github.com/faiface/glhf"
 	"github.com/go-gl/gl/v3.3-core/gl"
 )
 
 type Mesh struct {
 	vao, vbo uint32
-	faces    int
-	Id       math32.Vec3
-	Dirty    bool
+	faces int
+	Id    f32.Vec3
+	Dirty bool
 }
 
 func NewMesh(shader *glhf.Shader, data []float32) *Mesh {
@@ -62,7 +62,7 @@ func (m *Mesh) Faces() int {
 	return m.faces
 }
 
-func (m *Mesh) Draw() {
+func (m *Mesh) Render() {
 	if m.vao != 0 {
 		gl.BindVertexArray(m.vao)
 		gl.DrawArrays(gl.TRIANGLES, 0, int32(m.faces)*6)

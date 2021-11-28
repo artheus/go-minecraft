@@ -20,7 +20,7 @@ const vec3 lightdir = normalize(vec3(-1, 1, -1));
 void main() {
     gl_Position = matrix *  vec4(pos, 1.0);
 
-    float camera_distance = distance(pos, camera);
+    float camera_distance = distance(pos, camera)/2;
     fog_factor = pow(clamp(camera_distance/fogdis, 0, 1), 4);
     Tex = tex;
     diff = max(0, dot(normal, lightdir));
@@ -48,10 +48,10 @@ void main() {
     if (color == vec3(1,1,1)) {
         df = 1- diff * 0.2;
     }
-    vec3 ambient = 0.5 * vec3(1, 1, 1);
+    vec3 ambient = 0.05 * vec3(1, 1, 1);
     vec3 diffcolor = df * 0.5 * vec3(1,1,1);
-    color = (ambient + diffcolor) * color;
-    color = mix(color, sky_color, fog_factor);
+    color = (ambient * 8 + diffcolor) * color;
+    color = mix(color, sky_color, fog_factor/2);
     FragColor = vec4(color, 1);
 }
 `

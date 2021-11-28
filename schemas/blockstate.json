@@ -161,22 +161,58 @@
       "required": [],
       "properties": {},
       "additionalProperties": {
-        "$id": "#/properties/variants/properties/*",
-        "type": "object",
-        "title": "State query",
-        "description": "Comma separated query to match blocks state properties",
-        "default": {},
-        "examples": [
+        "oneOf": [
           {
-            "model": "minecraft:block/acacia_button",
-            "y": 270,
-            "x": 180
+            "$id": "#/properties/variants/properties/object:variant",
+            "type": "object",
+            "title": "State query",
+            "description": "Comma separated query to match blocks state properties",
+            "default": {},
+            "examples": [
+              {
+                "model": "minecraft:block/acacia_button",
+                "y": 270,
+                "x": 180
+              }
+            ],
+            "required": [
+              "model"
+            ],
+            "$ref": "#/definitions/blockstate:variant"
+          },
+          {
+            "$id": "#/properties/variants/properties/array/object:variant",
+            "type": "array",
+            "title": "State query",
+            "description": "Comma separated query to match blocks state properties",
+            "default": {},
+            "examples": [
+              [
+                {
+                  "model": "minecraft:block/grass_block"
+                },
+                {
+                  "model": "minecraft:block/grass_block",
+                  "y": 90
+                },
+                {
+                  "model": "minecraft:block/grass_block",
+                  "y": 180
+                },
+                {
+                  "model": "minecraft:block/grass_block",
+                  "y": 270
+                }
+              ]
+            ],
+            "items": {
+              "required": [
+                "model"
+              ],
+              "$ref": "#/definitions/blockstate:variant"
+            }
           }
-        ],
-        "required": [
-          "model"
-        ],
-        "$ref": "#/definitions/blockstate:variant"
+        ]
       }
     }
   },
