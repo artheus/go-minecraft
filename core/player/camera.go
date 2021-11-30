@@ -107,7 +107,7 @@ func (c *Camera) OnAngleChange(dx, dy float32) {
 	c.updateAngles()
 }
 
-func (c *Camera) EventLoop() {
+func (c *Camera) MovementEventLoop() {
 	running := true
 	subscriber := c.ctx.EventPipe().Subscriber()
 
@@ -155,7 +155,6 @@ func (c *Camera) GravityLoop() {
 				c.velocityY = -50
 			}
 
-			// TODO: Fix "laggy" walking, due to (kinda) collisions with floor..
 			y := c.pos.Y()
 			ny := Round(c.pos.Y())
 			const pad = 0.25

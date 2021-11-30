@@ -5,16 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4a42242f-bce0-4158-a969-c42855f509fa" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/jsonSchemas.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/jsonSchemas.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/chunk/renderer.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/chunk/renderer.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/chunk/shader.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/chunk/shader.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/ctx/context.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/ctx/context.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/game/game.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/game/game.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/game/world/world.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/game/world/world.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/player/camera.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/player/camera.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

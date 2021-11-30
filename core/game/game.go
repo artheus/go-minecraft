@@ -130,7 +130,7 @@ func (g *Application) Init(ctx *ctx.Context) (err error) {
 	g.world = world.NewWorld(ctx)
 	g.camera = player.NewCamera(ctx, mgl32.Vec3{0, 16, 0})
 
-	go g.camera.EventLoop()
+	go g.camera.MovementEventLoop()
 
 	go g.syncPlayerLoop()
 
