@@ -111,8 +111,8 @@ func (r *ChunkRenderer) makeChunkMesh(c types.IChunk, onmainthread bool) *types.
 			facedata = block.BlockData(facedata, show, pos, item.Tex.Texture(w.ID))
 		}
 	})
-	n := len(facedata) / (r.shader.VertexFormat().Size() / 4)
-	log.Printf("chunk faces:%d", n/6)
+	//n := len(facedata) / (r.shader.VertexFormat().Size() / 4)
+	//log.Printf("chunk faces:%d", n/6)
 	var mesh *types.Mesh
 	if onmainthread {
 		mesh = types.NewMesh(r.shader, facedata)
@@ -292,7 +292,7 @@ func (r *ChunkRenderer) updateMeshCache() {
 
 	newChunks := r.ctx.Game().World().Chunks(added)
 	for _, c := range newChunks {
-		log.Printf("add cache %v", c.ID())
+		//log.Printf("add cache %v", c.ID())
 		r.meshcache.Store(c.ID(), r.makeChunkMesh(c, false))
 	}
 

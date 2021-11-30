@@ -1,6 +1,7 @@
 package chunk
 
-var blockVertexSource = `
+var (
+	blockVertexSource = `
 #version 330 core
 
 in vec3 pos;
@@ -27,7 +28,7 @@ void main() {
 }
 `
 
-var blockFragmentSource = `
+	blockFragmentSource = `
 #version 330 core
 
 in vec2 Tex;
@@ -55,3 +56,4 @@ void main() {
     FragColor = vec4(color, 1);
 }
 `
+)

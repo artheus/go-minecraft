@@ -3,6 +3,7 @@ module github.com/artheus/go-minecraft
 go 1.17
 
 require (
+	github.com/artheus/go-events v0.0.0-20200426080822-25d0ce00fc05
 	github.com/boltdb/bolt v1.3.1
 	github.com/faiface/glhf v0.0.0-20211013000516-57b20770c369
 	github.com/faiface/mainthread v0.0.0-20171120011319-8b78f0a41ae3
@@ -17,10 +18,11 @@ require (
 )
 
 require (
-	github.com/davecgh/go-spew v1.1.0 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/hashicorp/yamux v0.0.0-20211028200310-0bc27b27de87 // indirect
+	github.com/konsorten/go-windows-terminal-sequences v1.0.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/stretchr/objx v0.1.0 // indirect
+	github.com/sirupsen/logrus v1.5.0 // indirect
 	golang.org/x/image v0.0.0-20211028202545-6944b10bf410 // indirect
 	golang.org/x/sys v0.0.0-20211117180635-dee7805ff2e1 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect

@@ -13,12 +13,7 @@
                 <list>
                   <Item>
                     <option name="pattern" value="true" />
-                    <option name="path" value="assets/*/blocks/*.json" />
-                    <option name="mappingKind" value="Pattern" />
-                  </Item>
-                  <Item>
-                    <option name="pattern" value="true" />
-                    <option name="path" value="assets/*/blockstate/*.json" />
+                    <option name="path" value="assets/*/blockstates/*.json" />
                     <option name="mappingKind" value="Pattern" />
                   </Item>
                 </list>

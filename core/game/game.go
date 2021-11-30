@@ -2,6 +2,8 @@ package game
 
 import (
 	"fmt"
+	"github.com/artheus/go-events"
+	evttypes "github.com/artheus/go-events/types"
 	"github.com/artheus/go-minecraft/core/block"
 	"github.com/artheus/go-minecraft/core/chunk"
 	"github.com/artheus/go-minecraft/core/ctx"
@@ -47,8 +49,9 @@ func InitGL(w, h int) *glfw.Window {
 }
 
 type Application struct {
-	Ctx    *ctx.Context
-	window *glfw.Window
+	Ctx          *ctx.Context
+	evtPublisher evttypes.Publisher
+	window       *glfw.Window
 
 	camera   *player.Camera
 	lx, ly   float64
@@ -99,6 +102,10 @@ func NewGame(w, h int) (game *Application, err error) {
 }
 
 func (g *Application) Init(ctx *ctx.Context) (err error) {
+	g.Ctx = ctx
+
+	g.evtPublisher = ctx.EventPipe().Publisher()
+
 	g.chunkRenderer, err = chunk.NewChunkRenderer(ctx)
 	if err != nil {
 		return err
@@ -121,7 +128,9 @@ func (g *Application) Init(ctx *ctx.Context) (err error) {
 	go g.chunkRenderer.UpdateLoop()
 
 	g.world = world.NewWorld(ctx)
-	g.camera = player.NewCamera(mgl32.Vec3{0, 16, 0})
+	g.camera = player.NewCamera(ctx, mgl32.Vec3{0, 16, 0})
+
+	go g.camera.EventLoop()
 
 	go g.syncPlayerLoop()
 
@@ -224,7 +233,10 @@ func (g *Application) onKeyCallback(win *glfw.Window, key glfw.Key, scancode int
 	case glfw.KeySpace:
 		block := g.CurrentBlockid()
 		if g.world.HasBlock(Vec3{block.X, block.Y - 2, block.Z}) {
-			g.vy = 8
+			_ = g.evtPublisher.Publish(events.Event(time.Now(), &player.EventMove{
+				Move: player.MoveJump,
+				Delta: 8,
+			}))
 		}
 	case glfw.KeyE:
 		g.itemidx = (1 + g.itemidx) % len(g.itemKeys)
@@ -240,7 +252,7 @@ func (g *Application) onKeyCallback(win *glfw.Window, key glfw.Key, scancode int
 	}
 }
 
-func (g *Application) handleKeyInput(dt float64) {
+func (g *Application) handleKeyInput() {
 	speed := float32(0.1)
 	if g.camera.Flying() {
 		speed = 0.2
@@ -249,32 +261,29 @@ func (g *Application) handleKeyInput(dt float64) {
 		g.setExclusiveMouse(false)
 	}
 	if g.window.GetKey(glfw.KeyW) == glfw.Press {
-		g.camera.OnMoveChange(player.MoveForward, speed)
+		_ = g.evtPublisher.Publish(events.Event(time.Now(), &player.EventMove{
+			Move:  player.MoveForward,
+			Delta: speed,
+		}))
 	}
 	if g.window.GetKey(glfw.KeyS) == glfw.Press {
-		g.camera.OnMoveChange(player.MoveBackward, speed)
+		_ = g.evtPublisher.Publish(events.Event(time.Now(), &player.EventMove{
+			Move:  player.MoveBackward,
+			Delta: speed,
+		}))
 	}
 	if g.window.GetKey(glfw.KeyA) == glfw.Press {
-		g.camera.OnMoveChange(player.MoveLeft, speed)
+		_ = g.evtPublisher.Publish(events.Event(time.Now(), &player.EventMove{
+			Move:  player.MoveLeft,
+			Delta: speed,
+		}))
 	}
 	if g.window.GetKey(glfw.KeyD) == glfw.Press {
-		g.camera.OnMoveChange(player.MoveRight, speed)
+		_ = g.evtPublisher.Publish(events.Event(time.Now(), &player.EventMove{
+			Move:  player.MoveRight,
+			Delta: speed,
+		}))
 	}
-	pos := g.camera.Pos()
-	stop := false
-	if !g.camera.Flying() {
-		g.vy -= float32(dt * 20)
-		if g.vy < -50 {
-			g.vy = -50
-		}
-		pos = mgl32.Vec3{pos.X(), pos.Y() + g.vy*float32(dt), pos.Z()}
-	}
-
-	pos, stop = g.world.Collide(pos)
-	if stop {
-		g.vy = 0
-	}
-	g.camera.SetPos(pos)
 }
 
 func (g *Application) CurrentBlockid() Vec3 {
@@ -306,15 +315,7 @@ func (g *Application) syncPlayerLoop() {
 
 func (g *Application) Update() {
 	mainthread.Call(func() {
-		var dt float64
-		now := glfw.GetTime()
-		dt = now - g.prevtime
-		g.prevtime = now
-		if dt > 0.02 {
-			dt = 0.02
-		}
-
-		g.handleKeyInput(dt)
+		g.handleKeyInput()
 
 		gl.ClearColor(0.57, 0.71, 0.77, 1)
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)

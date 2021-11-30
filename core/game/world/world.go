@@ -1,6 +1,7 @@
 package world
 
 import (
+	evttypes "github.com/artheus/go-events/types"
 	"github.com/artheus/go-minecraft/core/block"
 	"github.com/artheus/go-minecraft/core/chunk"
 	"github.com/artheus/go-minecraft/core/ctx"
@@ -16,9 +17,10 @@ import (
 )
 
 type World struct {
-	mutex  sync.Mutex
-	chunks *lru.Cache // map[Vec3]*Chunk
-	ctx    *ctx.Context
+	ctx           *ctx.Context
+	evtPublisher  evttypes.Publisher
+	mutex         sync.Mutex
+	chunks        *lru.Cache // map[Vec3]*Chunk
 }
 
 func NewWorld(ctx *ctx.Context) *World {
@@ -27,6 +29,7 @@ func NewWorld(ctx *ctx.Context) *World {
 	return &World{
 		chunks: chunks,
 		ctx:    ctx,
+		evtPublisher: ctx.EventPipe().Publisher(),
 	}
 }
 
@@ -62,10 +65,6 @@ func (w *World) Collide(pos mgl32.Vec3) (mgl32.Vec3, bool) {
 		if w.Block(b.Right()).Obstacle && x > nx && x-nx > pad {
 			x = nx + pad
 		}
-		if w.Block(b.Down()).Obstacle && y < ny && ny-y > pad {
-			y = ny - pad
-			stop = true
-		}
 		if w.Block(b.Up()).Obstacle && y > ny && y-ny > pad {
 			y = ny + pad
 			stop = true
@@ -77,7 +76,14 @@ func (w *World) Collide(pos mgl32.Vec3) (mgl32.Vec3, bool) {
 			z = nz + pad
 		}
 	}
-	return mgl32.Vec3{x, y, z}, stop
+
+	newPos := Vec3{X: x, Y: y, Z: z}
+
+	for w.HasBlock(newPos) {
+		newPos = newPos.Up()
+	}
+
+	return mgl32.Vec3{newPos.X, newPos.Y, newPos.Z}, stop
 }
 
 func (w *World) HitTest(pos mgl32.Vec3, vec mgl32.Vec3) (*Vec3, *Vec3) {

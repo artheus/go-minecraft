@@ -7,25 +7,14 @@
     <list default="true" id="4a42242f-bce0-4158-a969-c42855f509fa" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/jsonSchemas.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/jsonSchemas.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/block/block.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/block/block.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/camera.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/player/camera.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/chunk/chunk.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/chunk/chunk.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/chunk/thread.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/chunk/thread.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/fps.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/hud/fps.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/game.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/game/game.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/mesh/mesh.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/types/mesh.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/player.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/player/renderer.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/render/iface.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/types/renderer.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/render_chunk.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/chunk/renderer.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/render_line.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/hud/renderer.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/rpc.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/game/rpc/rpc.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/run.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/run.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/store.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/game/store/store.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/texture/load.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/texture/load.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/thread/iface.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/types/thread.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/world.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/game/world/world.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/math32/vector.go" beforeDir="false" afterPath="$PROJECT_DIR$/math32/vector.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/types/chunk_identifier.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/types/chunk.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/chunk/renderer.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/chunk/renderer.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/chunk/shader.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/chunk/shader.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/ctx/context.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/ctx/context.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/game/game.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/game/game.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/game/world/world.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/game/world/world.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/player/camera.go" beforeDir="false" afterPath="$PROJECT_DIR$/core/player/camera.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -81,37 +70,20 @@
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/assets/core/textures/block" />
-      <recent name="$PROJECT_DIR$/schemas" />
       <recent name="$PROJECT_DIR$/assets/core/models/block" />
+      <recent name="$PROJECT_DIR$/assets/core/blockstates" />
       <recent name="$PROJECT_DIR$/assets/core/blocks" />
-      <recent name="$PROJECT_DIR$/math32" />
+      <recent name="$PROJECT_DIR$/core/block/native" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/core/block" />
+      <recent name="$PROJECT_DIR$/api/types" />
+      <recent name="$PROJECT_DIR$/math/f32" />
       <recent name="$PROJECT_DIR$/core/game/rpc" />
       <recent name="$PROJECT_DIR$/core/types" />
-      <recent name="$PROJECT_DIR$/core" />
-      <recent name="$PROJECT_DIR$/core/ctx" />
-      <recent name="$PROJECT_DIR$/core/game" />
     </key>
   </component>
   <component name="RunManager" selected="Go Build.go build github.com/artheus/go-minecraft">
-    <configuration default="true" type="GoApplicationRunConfiguration" factoryName="Go Application">
-      <module name="go-minecraft" />
-      <working_directory value="$PROJECT_DIR$" />
-      <kind value="FILE" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$" />
-      <method v="2" />
-    </configuration>
-    <configuration name="go build github.com/artheus/g3n-test" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
-      <module name="g3n-test" />
-      <working_directory value="$PROJECT_DIR$" />
-      <kind value="PACKAGE" />
-      <package value="github.com/artheus/g3n-test" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$/main.go" />
-      <method v="2" />
-    </configuration>
     <configuration name="go build github.com/artheus/go-minecraft" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
       <module name="go-minecraft" />
       <working_directory value="$PROJECT_DIR$" />
@@ -120,30 +92,48 @@
       <directory value="$PROJECT_DIR$" />
       <method v="2" />
     </configuration>
-    <configuration name="go build main.go" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
+    <configuration name="TestRegisterNativeBlocks in github.com/artheus/go-minecraft/core/block/native" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="go-minecraft" />
-      <working_directory value="$PROJECT_DIR$" />
-      <kind value="FILE" />
-      <package value="github.com/artheus/go-minecraft" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$/main.go" />
-      <method v="2" />
-    </configuration>
-    <configuration name="TestChunkIdShouldBeCorrect in github.com/artheus/go-minecraft" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
-      <module name="go-minecraft" />
-      <working_directory value="$PROJECT_DIR$" />
+      <working_directory value="$PROJECT_DIR$/core/block/native" />
+      <root_directory value="$PROJECT_DIR$" />
       <kind value="PACKAGE" />
-      <package value="github.com/artheus/go-minecraft" />
+      <package value="github.com/artheus/go-minecraft/core/block/native" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
-      <pattern value="^\QTestChunkIdShouldBeCorrect\E$" />
+      <pattern value="^\QTestRegisterNativeBlocks\E$" />
       <method v="2" />
     </configuration>
-    <configuration default="true" type="GoTestRunConfiguration" factoryName="Go Test">
+    <configuration name="TestRegisterNativeBlocks in github.com/artheus/go-minecraft/core/block/register" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="go-minecraft" />
-      <working_directory value="$PROJECT_DIR$" />
-      <kind value="DIRECTORY" />
+      <working_directory value="$PROJECT_DIR$/core/block/register" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/artheus/go-minecraft/core/block/register" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestRegisterNativeBlocks\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="TestRegisterSameIdTwiceShouldFail in github.com/artheus/go-minecraft/core/block/register" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="go-minecraft" />
+      <working_directory value="$PROJECT_DIR$/core/block/register" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/artheus/go-minecraft/core/block/register" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestRegisterSameIdTwiceShouldFail\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="go test github.com/artheus/go-minecraft/core/block/register" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="go-minecraft" />
+      <working_directory value="$PROJECT_DIR$/core/block/register" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/artheus/go-minecraft/core/block/register" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
@@ -152,9 +142,10 @@
     <recent_temporary>
       <list>
         <item itemvalue="Go Build.go build github.com/artheus/go-minecraft" />
-        <item itemvalue="Go Test.TestChunkIdShouldBeCorrect in github.com/artheus/go-minecraft" />
-        <item itemvalue="Go Build.go build main.go" />
-        <item itemvalue="Go Build.go build github.com/artheus/g3n-test" />
+        <item itemvalue="Go Test.go test github.com/artheus/go-minecraft/core/block/register" />
+        <item itemvalue="Go Test.TestRegisterSameIdTwiceShouldFail in github.com/artheus/go-minecraft/core/block/register" />
+        <item itemvalue="Go Test.TestRegisterNativeBlocks in github.com/artheus/go-minecraft/core/block/native" />
+        <item itemvalue="Go Test.TestRegisterNativeBlocks in github.com/artheus/go-minecraft/core/block/register" />
       </list>
     </recent_temporary>
   </component>
